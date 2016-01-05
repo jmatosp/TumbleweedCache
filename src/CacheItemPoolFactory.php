@@ -39,7 +39,7 @@ class CacheItemPoolFactory
                 return new APCuCacheItemPool();
 
             case self::REDIS:
-                if ( ! static::isRedisAvailable() || ! $args instanceof Redis) {
+                if ( ! static::isRedisAvailable() || ! $args[0] instanceof \Redis) {
                     throw new CacheException('Redis cache not available: not installed or argument not a Redis instance');
                 }
                 return new RedisCacheItemPool($args[0]);

@@ -7,10 +7,7 @@ require_once "vendor/autoload.php";
 
 $cache = CacheItemPoolFactory::make();
 
-$object = new stdClass();
-$object->bla = 1;
-
-$item = new Item('hello', $object, 30);
+$item = new Item('hello', get_class($cache), 30);
 
 $cache->save($item);
 
