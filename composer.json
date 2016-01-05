@@ -1,0 +1,16 @@
+{
+  "name": "jmatosp/TumbleweedCache",
+  "description": "PHP caching implementation of PSR-6",
+  "keywords": ["apc", "memcache", "redis", "cache", "psr6"],
+  "license": "MIT",
+  "type": "project",
+  "author": "Jose Pinto",
+  "require": {
+    "psr/cache": "~1.0.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "JPinto\\TumbleweedCache\\": "src/"
+    }
+  }
+}
