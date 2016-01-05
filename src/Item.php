@@ -29,7 +29,7 @@ class Item implements CacheItemInterface
      * @param mixed $value
      * @param null|int|DateTimeInterface $expiresAfter
      */
-    public function __construct($key, $value, $expiresAfter = null)
+    public function __construct($key, $value = null, $expiresAfter = null)
     {
         $this->key = $key;
         $this->value = $value;

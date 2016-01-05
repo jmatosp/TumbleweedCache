@@ -4,30 +4,16 @@ namespace JPinto\TumbleweedCache;
 
 use Psr\Cache\CacheItemInterface;
 use Psr\Cache\CacheItemPoolInterface;
+use Psr\Cache\InvalidArgumentException;
 
-/**
- * Driver for APCu Cache
- */
-class APCuCacheItemPool implements CacheItemPoolInterface
+class MemoryCacheItemPool implements CacheItemPoolInterface
 {
     /**
+     * Storage for items
+     *
      * @var CacheItemInterface[]
      */
-    private $stack = [];
-
-    /**
-     * APCuCacheItemPool constructor.
-     */
-    public function __construct()
-    {
-        if ( ! function_exists('apc_fetch')) {
-            throw new CacheException('APCu is not installed');
-        }
-
-        if ('cli' === php_sapi_name()) {
-            throw new CacheException('APCu doesnt work in CLI mode');
-        }
-    }
+    private $stack;
 
     /**
      * Returns a Cache Item representing the specified key.
@@ -47,11 +33,11 @@ class APCuCacheItemPool implements CacheItemPoolInterface
      */
     public function getItem($key)
     {
-        if ( ! $this->validKey($key)) {
-            throw new InvalidArgumentException('invalid key');
+        if (isset($this->stack[$key])) {
+            return $this->stack[$key];
         }
 
-        return unserialize(apc_fetch($key));
+        return new Item($key, null);
     }
 
     /**
@@ -72,13 +58,13 @@ class APCuCacheItemPool implements CacheItemPoolInterface
      */
     public function getItems(array $keys = array())
     {
-        $collection = [];
+        $items = [];
 
         foreach ($keys as $key) {
-            $collection[] = unserialize(apc_fetch($key));
+            $items[] = $this->getItem($key);
         }
 
-        return $collection;
+        return $items;
     }
 
     /**
@@ -100,7 +86,7 @@ class APCuCacheItemPool implements CacheItemPoolInterface
      */
     public function hasItem($key)
     {
-        return apc_exists($key);
+        return isset($this->stack[$key]);
     }
 
     /**
@@ -111,7 +97,9 @@ class APCuCacheItemPool implements CacheItemPoolInterface
      */
     public function clear()
     {
-        return apc_clear_cache();
+        $this->stack = [];
+
+        return true;
     }
 
     /**
@@ -129,7 +117,11 @@ class APCuCacheItemPool implements CacheItemPoolInterface
      */
     public function deleteItem($key)
     {
-        return apc_delete($key);
+        if (isset($this->stack[$key])) {
+            unset($this->stack[$key]);
+        }
+
+        return true;
     }
 
     /**
@@ -149,7 +141,7 @@ class APCuCacheItemPool implements CacheItemPoolInterface
         $result = true;
 
         foreach ($keys as $key) {
-            $result &= apc_delete($key);
+            $result &= $this->deleteItem($key);
         }
 
         return $result;
@@ -166,7 +158,9 @@ class APCuCacheItemPool implements CacheItemPoolInterface
      */
     public function save(CacheItemInterface $item)
     {
-        return apc_store($item->getKey(), serialize($item));
+        $this->stack[$item->getKey()] = $item;
+
+        return true;
     }
 
     /**
@@ -180,7 +174,7 @@ class APCuCacheItemPool implements CacheItemPoolInterface
      */
     public function saveDeferred(CacheItemInterface $item)
     {
-        $this->stack[] = $item;
+        // do nothing
     }
 
     /**
@@ -191,27 +185,6 @@ class APCuCacheItemPool implements CacheItemPoolInterface
      */
     public function commit()
     {
-        $result = true;
-
-        foreach ($this->stack as $item) {
-            $result |= $this->save($item);
-        }
-
-        return $result;
-    }
-
-    /**
-     * Checks if a key is valid for APCu cache storage
-     *
-     * @param $key
-     * @return bool
-     */
-    private function validKey($key)
-    {
-        if (preg_match("/(a-zA-Z0-9:.,;\*-+_)*/", $key)) {
-            return true;
-        }
-
-        return false;
+        // do nothing
     }
 }

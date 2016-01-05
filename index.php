@@ -1,13 +1,16 @@
 <?php
 
+use JPinto\TumbleweedCache\CacheItemPoolFactory;
 use JPinto\TumbleweedCache\Item;
-use JPinto\TumbleweedCache\APCuCacheItemPool;
 
 require_once "vendor/autoload.php";
 
-$cache = new APCuCacheItemPool();
+$cache = CacheItemPoolFactory::make();
 
-$item = new Item('hello', new stdClass(), 30);
+$object = new stdClass();
+$object->bla = 1;
+
+$item = new Item('hello', $object, 30);
 
 $cache->save($item);
 

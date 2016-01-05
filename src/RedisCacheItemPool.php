@@ -4,29 +4,28 @@ namespace JPinto\TumbleweedCache;
 
 use Psr\Cache\CacheItemInterface;
 use Psr\Cache\CacheItemPoolInterface;
+use Psr\Cache\InvalidArgumentException;
+use Redis;
 
-/**
- * Driver for APCu Cache
- */
-class APCuCacheItemPool implements CacheItemPoolInterface
+class RedisCacheItemPool implements CacheItemPoolInterface
 {
     /**
      * @var CacheItemInterface[]
      */
-    private $stack = [];
+    private $stack;
 
     /**
-     * APCuCacheItemPool constructor.
+     * @var Redis
      */
-    public function __construct()
-    {
-        if ( ! function_exists('apc_fetch')) {
-            throw new CacheException('APCu is not installed');
-        }
+    private $redis;
 
-        if ('cli' === php_sapi_name()) {
-            throw new CacheException('APCu doesnt work in CLI mode');
-        }
+    /**
+     * RedisCacheItemPool constructor.
+     * @param Redis $redis
+     */
+    public function __construct(Redis $redis)
+    {
+        $this->redis = $redis;
     }
 
     /**
@@ -47,11 +46,12 @@ class APCuCacheItemPool implements CacheItemPoolInterface
      */
     public function getItem($key)
     {
-        if ( ! $this->validKey($key)) {
-            throw new InvalidArgumentException('invalid key');
-        }
+        $item = $this->redis->get($key);
+        if (false !== $item) {
+            return unserialize($item);
+        };
 
-        return unserialize(apc_fetch($key));
+        return new Item($key);
     }
 
     /**
@@ -72,13 +72,13 @@ class APCuCacheItemPool implements CacheItemPoolInterface
      */
     public function getItems(array $keys = array())
     {
-        $collection = [];
+        $items = [];
 
-        foreach ($keys as $key) {
-            $collection[] = unserialize(apc_fetch($key));
+        foreach($keys as $key) {
+            $items[] = $this->getItem($key);
         }
 
-        return $collection;
+        return $items;
     }
 
     /**
@@ -100,7 +100,7 @@ class APCuCacheItemPool implements CacheItemPoolInterface
      */
     public function hasItem($key)
     {
-        return apc_exists($key);
+        return $this->redis->exists($key);
     }
 
     /**
@@ -111,7 +111,7 @@ class APCuCacheItemPool implements CacheItemPoolInterface
      */
     public function clear()
     {
-        return apc_clear_cache();
+        return $this->redis->flushDB();
     }
 
     /**
@@ -129,7 +129,9 @@ class APCuCacheItemPool implements CacheItemPoolInterface
      */
     public function deleteItem($key)
     {
-        return apc_delete($key);
+        $this->redis->delete($key);
+
+        return true;
     }
 
     /**
@@ -148,8 +150,8 @@ class APCuCacheItemPool implements CacheItemPoolInterface
     {
         $result = true;
 
-        foreach ($keys as $key) {
-            $result &= apc_delete($key);
+        foreach($keys as $key) {
+            $result &= $this->deleteItem($key);
         }
 
         return $result;
@@ -166,7 +168,7 @@ class APCuCacheItemPool implements CacheItemPoolInterface
      */
     public function save(CacheItemInterface $item)
     {
-        return apc_store($item->getKey(), serialize($item));
+        $this->redis->set($item->getKey(), serialize($item));
     }
 
     /**
@@ -180,7 +182,7 @@ class APCuCacheItemPool implements CacheItemPoolInterface
      */
     public function saveDeferred(CacheItemInterface $item)
     {
-        $this->stack[] = $item;
+        $this->stack[$item->getKey()] = $item;
     }
 
     /**
@@ -193,25 +195,11 @@ class APCuCacheItemPool implements CacheItemPoolInterface
     {
         $result = true;
 
-        foreach ($this->stack as $item) {
-            $result |= $this->save($item);
+        foreach ($this->stack as $key => $item) {
+            $result &= $this->save($item);
+            unset($this->stack[$key]);
         }
 
         return $result;
-    }
-
-    /**
-     * Checks if a key is valid for APCu cache storage
-     *
-     * @param $key
-     * @return bool
-     */
-    private function validKey($key)
-    {
-        if (preg_match("/(a-zA-Z0-9:.,;\*-+_)*/", $key)) {
-            return true;
-        }
-
-        return false;
     }
 }

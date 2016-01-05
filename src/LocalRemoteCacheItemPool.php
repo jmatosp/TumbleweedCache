@@ -4,29 +4,29 @@ namespace JPinto\TumbleweedCache;
 
 use Psr\Cache\CacheItemInterface;
 use Psr\Cache\CacheItemPoolInterface;
+use Psr\Cache\InvalidArgumentException;
 
-/**
- * Driver for APCu Cache
- */
-class APCuCacheItemPool implements CacheItemPoolInterface
+class LocalRemoteCacheItemPool implements CacheItemPoolInterface
 {
     /**
-     * @var CacheItemInterface[]
+     * @var CacheItemPoolInterface
      */
-    private $stack = [];
+    private $local;
 
     /**
-     * APCuCacheItemPool constructor.
+     * @var CacheItemPoolInterface
      */
-    public function __construct()
-    {
-        if ( ! function_exists('apc_fetch')) {
-            throw new CacheException('APCu is not installed');
-        }
+    private $remote;
 
-        if ('cli' === php_sapi_name()) {
-            throw new CacheException('APCu doesnt work in CLI mode');
-        }
+    /**
+     * LocalRemoteCacheItemPool constructor.
+     * @param CacheItemPoolInterface $local
+     * @param CacheItemPoolInterface $remote
+     */
+    public function __construct(CacheItemPoolInterface $local, CacheItemPoolInterface $remote)
+    {
+        $this->local = $local;
+        $this->remote = $remote;
     }
 
     /**
@@ -47,11 +47,18 @@ class APCuCacheItemPool implements CacheItemPoolInterface
      */
     public function getItem($key)
     {
-        if ( ! $this->validKey($key)) {
-            throw new InvalidArgumentException('invalid key');
+        // try to fetch first from local cache
+        if ($this->local->hasItem($key)) {
+            return $this->local->getItem($key);
         }
 
-        return unserialize(apc_fetch($key));
+        // now on remote
+        if ($this->remote->hasItem($key)) {
+            return $this->remote->getItem($key);
+        }
+
+        // not found anywhere
+        return new Item($key, null);
     }
 
     /**
@@ -72,13 +79,13 @@ class APCuCacheItemPool implements CacheItemPoolInterface
      */
     public function getItems(array $keys = array())
     {
-        $collection = [];
+        $items = [];
 
-        foreach ($keys as $key) {
-            $collection[] = unserialize(apc_fetch($key));
+        foreach($keys as $key) {
+            $items[] = $this->getItem($key);
         }
 
-        return $collection;
+        return $items;
     }
 
     /**
@@ -100,7 +107,11 @@ class APCuCacheItemPool implements CacheItemPoolInterface
      */
     public function hasItem($key)
     {
-        return apc_exists($key);
+        if ($this->local->hasItem($key) || $this->remote->hasItem($key)) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -111,7 +122,7 @@ class APCuCacheItemPool implements CacheItemPoolInterface
      */
     public function clear()
     {
-        return apc_clear_cache();
+        return ($this->local->clear() && $this->remote->clear());
     }
 
     /**
@@ -129,7 +140,7 @@ class APCuCacheItemPool implements CacheItemPoolInterface
      */
     public function deleteItem($key)
     {
-        return apc_delete($key);
+        return ($this->local->deleteItem($key) && $this->remote->deleteItem($key));
     }
 
     /**
@@ -149,7 +160,7 @@ class APCuCacheItemPool implements CacheItemPoolInterface
         $result = true;
 
         foreach ($keys as $key) {
-            $result &= apc_delete($key);
+            $result &= $this->deleteItem($key);
         }
 
         return $result;
@@ -166,7 +177,7 @@ class APCuCacheItemPool implements CacheItemPoolInterface
      */
     public function save(CacheItemInterface $item)
     {
-        return apc_store($item->getKey(), serialize($item));
+        return ($this->local->save($item) && $this->remote->save($item));
     }
 
     /**
@@ -180,7 +191,7 @@ class APCuCacheItemPool implements CacheItemPoolInterface
      */
     public function saveDeferred(CacheItemInterface $item)
     {
-        $this->stack[] = $item;
+        return ($this->local->saveDeferred($item) && $this->remote->saveDeferred($item));
     }
 
     /**
@@ -191,27 +202,6 @@ class APCuCacheItemPool implements CacheItemPoolInterface
      */
     public function commit()
     {
-        $result = true;
-
-        foreach ($this->stack as $item) {
-            $result |= $this->save($item);
-        }
-
-        return $result;
-    }
-
-    /**
-     * Checks if a key is valid for APCu cache storage
-     *
-     * @param $key
-     * @return bool
-     */
-    private function validKey($key)
-    {
-        if (preg_match("/(a-zA-Z0-9:.,;\*-+_)*/", $key)) {
-            return true;
-        }
-
-        return false;
+        return ($this->local->commit() && $this->remote->commit());
     }
 }
