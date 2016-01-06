@@ -1,5 +1,6 @@
 {
   "name": "jmatosp/tumbleweed-cache",
+  "version": "1.0.0",
   "description": "PHP caching implementation of PSR-6",
   "keywords": ["apc", "memcache", "redis", "cache", "psr6"],
   "license": "MIT",

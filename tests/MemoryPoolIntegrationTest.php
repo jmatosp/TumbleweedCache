@@ -3,7 +3,7 @@
 use Cache\IntegrationTests\CachePoolTest;
 use JPinto\TumbleweedCache\MemoryCacheItemPool;
 
-class PoolIntegrationTest extends CachePoolTest
+class MemoryPoolIntegrationTest extends CachePoolTest
 {
     private $memoryCache = null;
 
