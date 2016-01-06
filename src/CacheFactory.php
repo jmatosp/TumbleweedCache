@@ -94,6 +94,6 @@ class CacheFactory
      */
     private static function isAPCuAvailable()
     {
-        return (function_exists('apc_fetch') && php_sapi_name() !== 'cli');
+        return (function_exists('apc_fetch'));
     }
 }

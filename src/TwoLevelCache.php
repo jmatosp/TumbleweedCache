@@ -4,7 +4,6 @@ namespace JPinto\TumbleweedCache;
 
 use Psr\Cache\CacheItemInterface;
 use Psr\Cache\CacheItemPoolInterface;
-use Psr\Cache\InvalidArgumentException;
 
 class TwoLevelCache implements CacheItemPoolInterface
 {
@@ -82,7 +81,7 @@ class TwoLevelCache implements CacheItemPoolInterface
         $items = [];
 
         foreach ($keys as $key) {
-            $items[] = $this->getItem($key);
+            $items[$key] = $this->getItem($key);
         }
 
         return $items;
@@ -160,7 +159,7 @@ class TwoLevelCache implements CacheItemPoolInterface
         $result = true;
 
         foreach ($keys as $key) {
-            $result &= $this->deleteItem($key);
+            $result = $result && $this->deleteItem($key);
         }
 
         return $result;
