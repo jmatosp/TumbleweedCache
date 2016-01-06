@@ -4,7 +4,13 @@
   "keywords": ["apc", "memcache", "redis", "cache", "psr6"],
   "license": "MIT",
   "type": "project",
-  "author": "Jose Pinto",
+  "authors": [
+    {
+      "name": "Jose Pinto",
+      "email": "bluecor@gmail.com",
+      "role": "Developer"
+    }
+  ],
   "require": {
     "psr/cache": "~1.0.0"
   },
