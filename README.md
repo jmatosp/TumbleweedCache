@@ -1,6 +1,8 @@
 TumbleweedCache
 ===============
 
+[![Build Status](https://travis-ci.org/jmatosp/TumbleweedCache.svg?branch=master)](https://travis-ci.org/jmatosp/TumbleweedCache)
+
 *PHP Caching PSR-6 implementation*
 
 This library provides Calling Libraries cache services without development and driver agnostic.
@@ -18,10 +20,10 @@ Install
 Usage
 =====
 
-Simple to use, will try to use one of the available drivers APCu, Redis or Files 
+Simple to use, Tumbleweed Cache will try to use one of the available drivers APCu, Redis or Files 
 
     $cache = CacheItemPoolFactory::make();
-    $cache->save(new Item('my_key', 'value', 60));
+    $cache->save(new Item('my_key', 'value', 60));      // cache for 60 seconds
     echo $cache->getItem('my_key);
 
 You can specify the cache implementation to use:
@@ -54,15 +56,15 @@ Sample using APCu as first level (faster) and Redis second level (fast)
     $cache->save(new Item('my_key', 'value', 60));
     echo $cache->getItem('my_key);
 
-Cache Methods Available
-=======================
+Cache Item Pool Interface
+=========================
 
 All cache item pool implementations use PSR-6 interfaces, for details please visit [PHP-FIG PSR-6: Caching Interface](http://www.php-fig.org/psr/psr-6/)
 
 A quick overview of methods available:
 
-CacheItemInterface
-------------------
+CacheItemInterface - getKey()
+---------------------------
 
     /***
      * Returns the key for the current cache item.

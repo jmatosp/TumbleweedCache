@@ -24,6 +24,11 @@ class Item implements CacheItemInterface
     private $expiresAt;
 
     /**
+     * @var bool
+     */
+    private $isHit = true;
+
+    /**
      * Item constructor.
      * @param string $key
      * @param mixed $value
@@ -34,6 +39,10 @@ class Item implements CacheItemInterface
         $this->key = $key;
         $this->value = $value;
         $this->expiresAfter($expiresAfter);
+
+        if (null === $value) {
+            $this->isHit = false;
+        }
     }
 
     /**
@@ -83,6 +92,10 @@ class Item implements CacheItemInterface
      */
     public function isHit()
     {
+        if ( ! $this->isHit ) {
+            return false;
+        }
+
         if (null === $this->expiresAt) {
             return true;
         }

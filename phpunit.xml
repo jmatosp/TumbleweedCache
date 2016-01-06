@@ -1,0 +1,15 @@
+<phpunit bootstrap="vendor/autoload.php">
+    <filter>
+        <whitelist addUncoveredFilesFromWhitelist="true">
+            <directory suffix=".php">./src</directory>
+        </whitelist>
+    </filter>
+    <logging>
+        <log type="coverage-clover" target="build/logs/clover.xml"/>
+    </logging>
+    <testsuites>
+        <testsuite name="TumbleweedCache">
+            <directory>tests</directory>
+        </testsuite>
+    </testsuites>
+</phpunit>
