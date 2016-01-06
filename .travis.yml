@@ -12,9 +12,7 @@ services:
 before_script:
   - wget http://getcomposer.org/composer.phar
   - php composer.phar install
-  - echo "extension = redis.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
-  - echo "extension = apc.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
-  - echo "apc.enable_cli = 1" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
+  - phpenv config-add travis-php.ini
 
 script:
   - mkdir -p build/logs
