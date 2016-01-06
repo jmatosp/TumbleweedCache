@@ -4,7 +4,6 @@ namespace JPinto\TumbleweedCache;
 
 use Psr\Cache\CacheItemInterface;
 use Psr\Cache\CacheItemPoolInterface;
-use Psr\Cache\InvalidArgumentException;
 
 class MemoryCacheItemPool implements CacheItemPoolInterface
 {
@@ -14,6 +13,11 @@ class MemoryCacheItemPool implements CacheItemPoolInterface
      * @var CacheItemInterface[]
      */
     private $stack;
+
+    /**
+     * @var CacheItemInterface[]
+     */
+    private $deferredStack;
 
     /**
      * Returns a Cache Item representing the specified key.
@@ -33,8 +37,14 @@ class MemoryCacheItemPool implements CacheItemPoolInterface
      */
     public function getItem($key)
     {
+        $this->assertValidKey($key);
+
         if (isset($this->stack[$key])) {
-            return $this->stack[$key];
+            return clone $this->stack[$key];
+        }
+
+        if (isset($this->deferredStack[$key])) {
+            return clone $this->deferredStack[$key];
         }
 
         return new Item($key, null);
@@ -61,7 +71,8 @@ class MemoryCacheItemPool implements CacheItemPoolInterface
         $items = [];
 
         foreach ($keys as $key) {
-            $items[] = $this->getItem($key);
+            $this->assertValidKey($key);
+            $items[$key] = $this->getItem($key);
         }
 
         return $items;
@@ -86,6 +97,8 @@ class MemoryCacheItemPool implements CacheItemPoolInterface
      */
     public function hasItem($key)
     {
+        $this->assertValidKey($key);
+
         return isset($this->stack[$key]);
     }
 
@@ -98,6 +111,7 @@ class MemoryCacheItemPool implements CacheItemPoolInterface
     public function clear()
     {
         $this->stack = [];
+        $this->deferredStack = [];
 
         return true;
     }
@@ -117,8 +131,14 @@ class MemoryCacheItemPool implements CacheItemPoolInterface
      */
     public function deleteItem($key)
     {
+        $this->assertValidKey($key);
+
         if (isset($this->stack[$key])) {
             unset($this->stack[$key]);
+        }
+
+        if (isset($this->deferredStack[$key])) {
+            unset($this->deferredStack[$key]);
         }
 
         return true;
@@ -141,7 +161,8 @@ class MemoryCacheItemPool implements CacheItemPoolInterface
         $result = true;
 
         foreach ($keys as $key) {
-            $result &= $this->deleteItem($key);
+            $this->assertValidKey($key);
+            $result = $result && $this->deleteItem($key);
         }
 
         return $result;
@@ -174,7 +195,9 @@ class MemoryCacheItemPool implements CacheItemPoolInterface
      */
     public function saveDeferred(CacheItemInterface $item)
     {
-        // do nothing
+        $this->deferredStack[$item->getKey()] = $item;
+
+        return true;
     }
 
     /**
@@ -185,6 +208,27 @@ class MemoryCacheItemPool implements CacheItemPoolInterface
      */
     public function commit()
     {
-        // do nothing
+        foreach ($this->deferredStack as $key => $item) {
+            $this->save($item);
+            unset($this->deferredStack[$key]);
+        }
+
+        return true;
+    }
+
+    /**
+     * Checks if a key is valid for APCu cache storage
+     *
+     * @param $key
+     * @throws InvalidArgumentException
+     */
+    private function assertValidKey($key)
+    {
+        $invalid = '{}()/\@:';
+        if (is_string($key) && ! preg_match('/['.preg_quote($invalid, '/').']/', $key)) {
+            return;
+        }
+
+        throw new InvalidArgumentException('invalid key: ' . var_export($key, true));
     }
 }

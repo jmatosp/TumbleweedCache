@@ -5,10 +5,10 @@ use JPinto\TumbleweedCache\Item;
 
 require_once "vendor/autoload.php";
 
-$cache = CacheItemPoolFactory::make();
+$cache = CacheItemPoolFactory::make(CacheItemPoolFactory::MEMORY);
 
-$item = new Item('hello', get_class($cache), 30);
-
+$item = $cache->getItem('hello');
+$item->set('world');
 $cache->save($item);
 
 var_dump($cache->getItem('hello')->get());

@@ -11,11 +11,13 @@ Implementations for well known cache infrastructure, clever cache using multi-le
 
 Drivers available: *APCu*, *Redis*, *Memcached*, *Files*, *Memcache*, *Memory*, *Mocked*, *2 Level Cache*, *Failover* 
 
+All drivers where tested using PHPUnit and a great [3rd party testing suite for PSR-6](https://github.com/php-cache/integration-tests) 
+
 
 Install
 =======
 
-    composer require jmatosp/TumbleweedCache
+    composer require jmatosp/tumbleweed-cache
 
 Usage
 =====
@@ -23,8 +25,12 @@ Usage
 Simple to use, Tumbleweed Cache will try to use one of the available drivers APCu, Redis or Files 
 
     $cache = CacheItemPoolFactory::make();
-    $cache->save(new Item('my_key', 'value', 60));      // cache for 60 seconds
-    echo $cache->getItem('my_key);
+    $item = $cache->getItem('my_key');
+    $item->set('value');
+    $item->expiresAfter(60);
+    $cache->save($item);
+    echo $cache->getItem('my_key)->get();
+    // will output "value"
 
 You can specify the cache implementation to use:
  
@@ -33,16 +39,24 @@ You can specify the cache implementation to use:
     $cache = CacheItemPoolFactory::make(CacheItemPoolFactory::APCU);
     // or
     // $cache = new APCuCacheItemPool();
-    $cache->save(new Item('my_key', 'value', 60));
-    echo $cache->getItem('my_key);
+    $item = $cache->getItem('my_key');
+    $item->set('value');
+    $cache->save($item);
+    echo $cache->getItem('my_key)->get();
+    // will output "value"
     
 **Redis**
 
-    $cache = CacheItemPoolFactory::make(CacheItemPoolFactory::REDIS, new Redis());
+    $redis = new Redis();
+    $redis->connect('127.0.0.1');
+    $cache = CacheItemPoolFactory::make(CacheItemPoolFactory::REDIS, $redis);
     // or
-    // $cache = new RedisCacheItemPool(new Redis());
-    $cache->save(new Item('my_key', 'value', 60));
-    echo $cache->getItem('my_key);
+    // $cache = new RedisCacheItemPool($redis);
+    $item = $cache->getItem('my_key');
+    $item->set('value');
+    $cache->save($item);
+    echo $cache->getItem('my_key)->get();
+    // will output "value"
 
 **Files**
 
@@ -60,10 +74,15 @@ one remote share between nodes typically Redis or Memcached.
 Sample using APCu as first level (faster) and Redis second level (fast)
 
     $localCache = CacheItemPoolFactory::make(CacheItemPoolFactory::APCU);
-    $remoteCache = CacheItemPoolFactory::make(CacheItemPoolFactory::REDIS, new Redis());
+    $redis = new Redis();
+    $redis->connect('127.0.0.1');
+    $remoteCache = CacheItemPoolFactory::make(CacheItemPoolFactory::REDIS, $redis);
     $megaCache = CacheItemPoolFactory::make(CacheItemPoolFactory::TWO_LEVEL, $localCache, $remoteCache);
-    $cache->save(new Item('my_key', 'value', 60));
-    echo $cache->getItem('my_key);
+    $item = $cache->getItem('my_key');
+    $item->set('value');
+    $cache->save($item);
+    echo $cache->getItem('my_key)->get();
+    // will output "value"
 
 Cache Item Pool Interface
 =========================
@@ -89,7 +108,9 @@ CacheItemInterface - getKey()
 usage:
     
     $cache = CacheItemPoolFactory::make();
-    $cache->save(new Item('my_key', 'value', 60));
+    $item = $cache->getItem('my_key');
+    $item->set('value');
+    $cache->save($item);
     echo $cache->getItem('my_key)->getKey();
     // will output "my_key"
 

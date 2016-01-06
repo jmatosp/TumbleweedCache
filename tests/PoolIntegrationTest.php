@@ -1,13 +1,19 @@
 <?php
 
 use Cache\IntegrationTests\CachePoolTest;
+use JPinto\TumbleweedCache\MemoryCacheItemPool;
 
 class PoolIntegrationTest extends CachePoolTest
 {
+    private $memoryCache = null;
+
     public function createCachePool()
     {
-        $redis = new Redis();
-        $redis->connect('127.0.0.1');
-        return new \JPinto\TumbleweedCache\MemoryCacheItemPool($redis);
+        // we need this, as memory storage goes way when the instances looses scope
+        if (null === $this->memoryCache) {
+            $this->memoryCache = new MemoryCacheItemPool();
+        }
+
+        return $this->memoryCache;
     }
 }

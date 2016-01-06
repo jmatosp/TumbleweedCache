@@ -120,6 +120,7 @@ class Item implements CacheItemInterface
      */
     public function set($value)
     {
+        $this->isHit = true;
         $this->value = $value;
     }
 

@@ -13,6 +13,7 @@ class ItemTest extends PHPUnit_Framework_TestCase
     public function testKeyUntouched()
     {
         $item = new Item('my_key');
+
         $this->assertSame('my_key', $item->getKey());
     }
 
