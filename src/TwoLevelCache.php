@@ -6,7 +6,7 @@ use Psr\Cache\CacheItemInterface;
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\Cache\InvalidArgumentException;
 
-class LocalRemoteCacheItemPool implements CacheItemPoolInterface
+class TwoLevelCache implements CacheItemPoolInterface
 {
     /**
      * @var CacheItemPoolInterface

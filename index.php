@@ -1,11 +1,10 @@
 <?php
 
-use JPinto\TumbleweedCache\CacheItemPoolFactory;
-use JPinto\TumbleweedCache\Item;
+use JPinto\TumbleweedCache\CacheFactory;
 
 require_once "vendor/autoload.php";
 
-$cache = CacheItemPoolFactory::make(CacheItemPoolFactory::MEMORY);
+$cache = CacheFactory::make(CacheFactory::MEMORY);
 
 $item = $cache->getItem('hello');
 $item->set('world');

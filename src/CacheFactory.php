@@ -8,7 +8,7 @@ use Redis;
 /**
  * Creates a cache pool instance base on user selection or tries to guess the best one
  */
-class CacheItemPoolFactory
+class CacheFactory
 {
     const MEMORY = 1;
     const APCU = 2;
@@ -51,7 +51,7 @@ class CacheItemPoolFactory
                 ) {
                     throw new CacheException('Two level cache needs two arguments of CacheItemPoolInterface');
                 }
-                return new LocalRemoteCacheItemPool($args[0], $args[1]);
+                return new TwoLevelCache($args[0], $args[1]);
 
             default:
                 throw new CacheException('invalid user cache pool type');
@@ -78,7 +78,7 @@ class CacheItemPoolFactory
             };
         }
 
-        throw new CacheException('couldnt find a suitable cache pool');
+        throw new CacheException('could not find a suitable cache pool');
     }
 
     /**
