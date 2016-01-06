@@ -24,7 +24,7 @@ class CacheItemPoolFactory
     public static function make($type = null, ...$args)
     {
         if (null === $type) {
-            return static::bestImplementation();
+            return static::autoDiscovery();
         }
 
         // user selection
@@ -63,7 +63,7 @@ class CacheItemPoolFactory
      *
      * @throws CacheException
      */
-    public static function bestImplementation()
+    private static function autoDiscovery()
     {
         // use APCu first if available
         if (static::isAPCuAvailable()) {

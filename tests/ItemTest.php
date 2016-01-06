@@ -45,4 +45,65 @@ class ItemTest extends PHPUnit_Framework_TestCase
         $item = new Item('my_key', new stdClass());
         $this->assertEquals(new stdClass(), $item->get());
     }
+
+    public function testSetOverwriteValue()
+    {
+        $item = new Item('my_key', new stdClass());
+        $item->set('overwrite');
+        $this->assertSame('overwrite', $item->get());
+    }
+
+    public function testConstructorExpiresAfterSeconds()
+    {
+        $item = new Item('my_key', new stdClass(), 10);
+        $this->assertTrue($item->isHit());
+    }
+
+    public function testConstructorExpiredInterval()
+    {
+        $item = new Item('my_key', new stdClass(), DateInterval::createFromDateString('-10 seconds'));
+        $this->assertFalse($item->isHit());
+    }
+    public function testConstructorExpiresInterval()
+    {
+        $item = new Item('my_key', new stdClass(), DateInterval::createFromDateString('10 seconds'));
+        $this->assertTrue($item->isHit());
+    }
+
+    public function testExpiresAtTomorrowIsHit()
+    {
+        $item = new Item('my_key', new stdClass());
+        $tomorrow = (new DateTime('now'))->add(DateInterval::createFromDateString('1 day'));
+        $item->expiresAt($tomorrow);
+        $this->assertTrue($item->isHit());
+    }
+
+    public function testExpiresAtYesterdayIsNotHit()
+    {
+        $item = new Item('my_key', new stdClass());
+        $yesterday = (new DateTime('now'))->add(DateInterval::createFromDateString('-1 day'));
+        $item->expiresAt($yesterday);
+        $this->assertFalse($item->isHit());
+    }
+
+    public function testExpiresAfterIsHit()
+    {
+        $item = new Item('my_key', new stdClass());
+        $item->expiresAfter(60);
+        $this->assertTrue($item->isHit());
+    }
+
+    public function testExpiresAfter0IsNotHit()
+    {
+        $item = new Item('my_key', new stdClass());
+        $item->expiresAfter(0);
+        $this->assertFalse($item->isHit());
+    }
+
+    public function testExpiresAfterDefaultIsHit()
+    {
+        $item = new Item('my_key', new stdClass());
+        $item->expiresAfter(null);
+        $this->assertTrue($item->isHit());
+    }
 }
