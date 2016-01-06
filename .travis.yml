@@ -5,9 +5,7 @@ php:
   - 7.0
 
 services:
-  - apc
   - redis-server
-  - memcache
   - memcached
 
 before_script:
