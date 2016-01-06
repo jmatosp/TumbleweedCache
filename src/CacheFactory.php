@@ -17,11 +17,12 @@ class CacheFactory
 
     /**
      * @param null $type
-     * @param array ...$args
-     * @return CacheItemPoolInterface
+     * @param $arg0
+     * @param $arg1
      * @throws CacheException
+     * @return CacheItemPoolInterface
      */
-    public static function make($type = null, ...$args)
+    public static function make($type = null, $arg0 = null, $arg1 = null)
     {
         if (null === $type) {
             return static::autoDiscovery();
@@ -39,19 +40,19 @@ class CacheFactory
                 return new APCuCache();
 
             case self::REDIS:
-                if (! static::isRedisAvailable() || ! $args[0] instanceof \Redis) {
+                if (! static::isRedisAvailable() || ! $arg0 instanceof \Redis) {
                     throw new CacheException('Redis cache not available: not installed or argument not a Redis instance');
                 }
-                return new RedisCache($args[0]);
+                return new RedisCache($arg0);
 
             case self::TWO_LEVEL:
                 if (
-                    ! $args[0] instanceof CacheItemPoolInterface ||
-                    ! $args[1] instanceof CacheItemPoolInterface
+                    ! $arg0 instanceof CacheItemPoolInterface ||
+                    ! $arg1 instanceof CacheItemPoolInterface
                 ) {
                     throw new CacheException('Two level cache needs two arguments of CacheItemPoolInterface');
                 }
-                return new TwoLevelCache($args[0], $args[1]);
+                return new TwoLevelCache($arg0, $arg1);
 
             default:
                 throw new CacheException('invalid user cache pool type');
