@@ -2,7 +2,6 @@ language: php
 php:
   - 5.5
   - 5.6
-  - 7.0
 
 services:
   - redis-server
@@ -10,7 +9,7 @@ services:
 
 before_script:
   - composer update
-  - sudo pecl install channel://pecl.php.net/apcu-4.0.7
+  - pecl install channel://pecl.php.net/apcu-4.0.7
   - phpenv config-add travis-php.ini
 
 script:
