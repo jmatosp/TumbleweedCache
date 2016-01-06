@@ -11,6 +11,7 @@ services:
 before_script:
   - wget http://getcomposer.org/composer.phar
   - php composer.phar install
+  - echo "extension = redis.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
 
 script:
   - mkdir -p build/logs
