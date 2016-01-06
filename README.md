@@ -9,7 +9,7 @@ This library provides Calling Libraries cache services without development and d
 
 Implementations for well known cache infrastructure, clever cache using multi-level cache and clustered like cache.
 
-Drivers available: *APCu*, *Redis*, *Memcached*, *Files*, *Memcache*, *Memory*, *Mocked*, *2 Level Cache*, *Clustered* 
+Drivers available: *APCu*, *Redis*, *Memcached*, *Files*, *Memcache*, *Memory*, *Mocked*, *2 Level Cache*, *Failover* 
 
 
 Install
@@ -31,12 +31,16 @@ You can specify the cache implementation to use:
 **APCu**
 
     $cache = CacheItemPoolFactory::make(CacheItemPoolFactory::APCU);
+    // or
+    // $cache = new APCuCacheItemPool();
     $cache->save(new Item('my_key', 'value', 60));
     echo $cache->getItem('my_key);
     
-**REDIS**
+**Redis**
 
     $cache = CacheItemPoolFactory::make(CacheItemPoolFactory::REDIS, new Redis());
+    // or
+    // $cache = new RedisCacheItemPool(new Redis());
     $cache->save(new Item('my_key', 'value', 60));
     echo $cache->getItem('my_key);
 
@@ -44,9 +48,14 @@ You can specify the cache implementation to use:
 
 **Memcache**
 
-**Clustered**
+**Failover**
+
+
 
 **Two level**
+
+Two level cache aims to use 2 cache repositories, one local to instance with faster access like APCu and
+one remote share between nodes typically Redis or Memcached.
 
 Sample using APCu as first level (faster) and Redis second level (fast)
 

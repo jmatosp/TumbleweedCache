@@ -21,4 +21,10 @@ class ItemTest extends PHPUnit_Framework_TestCase
         $item = new Item('my_key');
         $this->assertFalse($item->isHit());
     }
+
+    public function testSetString()
+    {
+        $item = new Item('my_key', 'value');
+
+    }
 }
