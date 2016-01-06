@@ -8,26 +8,12 @@ use Psr\Cache\CacheItemPoolInterface;
 /**
  * Driver for APCu Cache
  */
-class APCuCacheItemPool implements CacheItemPoolInterface
+class APCuCache implements CacheItemPoolInterface
 {
     /**
      * @var CacheItemInterface[]
      */
-    private $stack = [];
-
-    /**
-     * APCuCacheItemPool constructor.
-     */
-    public function __construct()
-    {
-        if ( ! function_exists('apc_fetch')) {
-            throw new CacheException('APCu is not installed');
-        }
-
-        if ('cli' === php_sapi_name()) {
-            throw new CacheException('APCu doesnt work in CLI mode');
-        }
-    }
+    private $deferredStack = [];
 
     /**
      * Returns a Cache Item representing the specified key.
@@ -47,11 +33,18 @@ class APCuCacheItemPool implements CacheItemPoolInterface
      */
     public function getItem($key)
     {
-        if ( ! $this->validKey($key)) {
-            throw new InvalidArgumentException('invalid key');
+        $this->assertValidKey($key);
+
+        if (isset($this->deferredStack[$key])) {
+            return clone $this->deferredStack[$key];
         }
 
-        return unserialize(apc_fetch($key));
+        $item = apc_fetch($key);
+        if (false !== $item) {
+            return unserialize($item);
+        }
+
+        return new Item($key);
     }
 
     /**
@@ -72,13 +65,13 @@ class APCuCacheItemPool implements CacheItemPoolInterface
      */
     public function getItems(array $keys = array())
     {
-        $collection = [];
+        $items = [];
 
         foreach ($keys as $key) {
-            $collection[] = unserialize(apc_fetch($key));
+            $items[$key] = $this->getItem($key);
         }
 
-        return $collection;
+        return $items;
     }
 
     /**
@@ -100,7 +93,9 @@ class APCuCacheItemPool implements CacheItemPoolInterface
      */
     public function hasItem($key)
     {
-        return apc_exists($key);
+        $this->assertValidKey($key);
+
+        return isset($this->deferredStack[$key]) || apc_exists($key);
     }
 
     /**
@@ -111,6 +106,7 @@ class APCuCacheItemPool implements CacheItemPoolInterface
      */
     public function clear()
     {
+        $this->deferredStack = [];
         return apc_clear_cache();
     }
 
@@ -129,7 +125,15 @@ class APCuCacheItemPool implements CacheItemPoolInterface
      */
     public function deleteItem($key)
     {
-        return apc_delete($key);
+        $this->assertValidKey($key);
+
+        if (isset($this->deferredStack[$key])) {
+            unset($this->deferredStack[$key]);
+        }
+
+        apc_delete($key);
+
+        return true;
     }
 
     /**
@@ -149,7 +153,7 @@ class APCuCacheItemPool implements CacheItemPoolInterface
         $result = true;
 
         foreach ($keys as $key) {
-            $result &= apc_delete($key);
+            $result = $result && $this->deleteItem($key);
         }
 
         return $result;
@@ -180,7 +184,7 @@ class APCuCacheItemPool implements CacheItemPoolInterface
      */
     public function saveDeferred(CacheItemInterface $item)
     {
-        $this->stack[] = $item;
+        $this->deferredStack[$item->getKey()] = $item;
     }
 
     /**
@@ -193,8 +197,9 @@ class APCuCacheItemPool implements CacheItemPoolInterface
     {
         $result = true;
 
-        foreach ($this->stack as $item) {
-            $result |= $this->save($item);
+        foreach ($this->deferredStack as $key => $item) {
+            $result = $result && $this->save($item);
+            unset($this->deferredStack[$key]);
         }
 
         return $result;
@@ -204,14 +209,20 @@ class APCuCacheItemPool implements CacheItemPoolInterface
      * Checks if a key is valid for APCu cache storage
      *
      * @param $key
-     * @return bool
+     * @throws InvalidArgumentException
      */
-    private function validKey($key)
+    private function assertValidKey($key)
     {
-        if (preg_match("/(a-zA-Z0-9:.,;\*-+_)*/", $key)) {
-            return true;
+        $invalid = '{}()/\@:';
+        if (is_string($key) && ! preg_match('/['.preg_quote($invalid, '/').']/', $key)) {
+            return;
         }
 
-        return false;
+        throw new InvalidArgumentException('invalid key: ' . var_export($key, true));
+    }
+
+    public function __destruct()
+    {
+        $this->commit();
     }
 }

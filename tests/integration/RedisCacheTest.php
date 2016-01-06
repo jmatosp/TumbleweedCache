@@ -1,7 +1,7 @@
 <?php
 
 use Cache\IntegrationTests\CachePoolTest;
-use JPinto\TumbleweedCache\RedisCache;
+use JPinto\TumbleweedCache\CacheItemPoolFactory;
 
 class RedisCacheTest extends CachePoolTest
 {
@@ -9,6 +9,6 @@ class RedisCacheTest extends CachePoolTest
     {
         $redisClient = new Redis();
         $redisClient->connect('127.0.0.1');
-        return new RedisCache($redisClient);
+        return CacheItemPoolFactory::make(CacheItemPoolFactory::REDIS, $redisClient);
     }
 }

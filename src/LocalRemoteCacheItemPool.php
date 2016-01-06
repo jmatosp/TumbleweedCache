@@ -81,7 +81,7 @@ class LocalRemoteCacheItemPool implements CacheItemPoolInterface
     {
         $items = [];
 
-        foreach($keys as $key) {
+        foreach ($keys as $key) {
             $items[] = $this->getItem($key);
         }
 

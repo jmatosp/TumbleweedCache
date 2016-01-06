@@ -47,7 +47,7 @@ class MemoryCache implements CacheItemPoolInterface
             return clone $this->deferredStack[$key];
         }
 
-        return new Item($key, null);
+        return new Item($key);
     }
 
     /**
@@ -71,7 +71,6 @@ class MemoryCache implements CacheItemPoolInterface
         $items = [];
 
         foreach ($keys as $key) {
-            $this->assertValidKey($key);
             $items[$key] = $this->getItem($key);
         }
 
@@ -161,7 +160,6 @@ class MemoryCache implements CacheItemPoolInterface
         $result = true;
 
         foreach ($keys as $key) {
-            $this->assertValidKey($key);
             $result = $result && $this->deleteItem($key);
         }
 

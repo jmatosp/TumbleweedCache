@@ -1,6 +1,7 @@
 <?php
 
 use Cache\IntegrationTests\CachePoolTest;
+use JPinto\TumbleweedCache\CacheItemPoolFactory;
 use JPinto\TumbleweedCache\MemoryCache;
 
 class MemoryCacheTest extends CachePoolTest
@@ -11,7 +12,7 @@ class MemoryCacheTest extends CachePoolTest
     {
         // we need this, as memory storage goes way when the instances looses scope
         if (null === $this->memoryCache) {
-            $this->memoryCache = new MemoryCache();
+            $this->memoryCache = CacheItemPoolFactory::make(CacheItemPoolFactory::MEMORY);
         }
 
         return $this->memoryCache;

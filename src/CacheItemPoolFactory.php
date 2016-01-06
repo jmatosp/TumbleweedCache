@@ -36,10 +36,10 @@ class CacheItemPoolFactory
                 if (! static::isAPCuAvailable()) {
                     throw new CacheException('APCu is not available: not installed or running on CLI');
                 }
-                return new APCuCacheItemPool();
+                return new APCuCache();
 
             case self::REDIS:
-                if ( ! static::isRedisAvailable() || ! $args[0] instanceof \Redis) {
+                if (! static::isRedisAvailable() || ! $args[0] instanceof \Redis) {
                     throw new CacheException('Redis cache not available: not installed or argument not a Redis instance');
                 }
                 return new RedisCache($args[0]);
@@ -67,7 +67,7 @@ class CacheItemPoolFactory
     {
         // use APCu first if available
         if (static::isAPCuAvailable()) {
-            return new APCuCacheItemPool();
+            return new APCuCache();
         }
 
         // is redis installed and available in localhost standard port?

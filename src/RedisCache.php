@@ -79,8 +79,7 @@ class RedisCache implements CacheItemPoolInterface
     {
         $items = [];
 
-        foreach($keys as $key) {
-            $this->assertValidKey($key);
+        foreach ($keys as $key) {
             $items[$key] = $this->getItem($key);
         }
 
@@ -165,8 +164,7 @@ class RedisCache implements CacheItemPoolInterface
     {
         $result = true;
 
-        foreach($keys as $key) {
-            $this->assertValidKey($key);
+        foreach ($keys as $key) {
             $result = $result && $this->deleteItem($key);
         }
 

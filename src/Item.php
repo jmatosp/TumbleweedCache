@@ -92,7 +92,7 @@ class Item implements CacheItemInterface
      */
     public function isHit()
     {
-        if ( ! $this->isHit ) {
+        if (! $this->isHit) {
             return false;
         }
 
