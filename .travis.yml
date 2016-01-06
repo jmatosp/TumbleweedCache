@@ -5,18 +5,18 @@ php:
   - 7.0
 
 services:
-  - redis-server
-  - memcached
   - apc
+  - redis-server
+  - memcache
+  - memcached
 
 before_script:
-  - wget http://getcomposer.org/composer.phar
-  - php composer.phar install
+  - composer update
   - phpenv config-add travis-php.ini
 
 script:
   - mkdir -p build/logs
-  - php vendor/bin/phpunit
+  - ./vendor/bin/phpunit
 
 after_script:
-  - php vendor/bin/coveralls -v
+  - ./vendor/bin/coveralls -v
