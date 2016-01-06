@@ -10,7 +10,7 @@ services:
 
 before_script:
   - composer update
-  - sudo apt-get install php5-apcu
+  - sudo pecl install channel://pecl.php.net/apcu-4.0.7
   - phpenv config-add travis-php.ini
 
 script:
