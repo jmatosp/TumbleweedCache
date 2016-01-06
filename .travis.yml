@@ -10,7 +10,7 @@ services:
 
 before_script:
   - composer update
-  - printf "\n"| pecl install apcu
+  - apt-get install php5-apcu
   - phpenv config-add travis-php.ini
 
 script:
