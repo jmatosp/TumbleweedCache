@@ -57,7 +57,7 @@ Sample using APCu as first level (faster) and Redis second level (fast)
 Cache Methods Available
 =======================
 
-All cache item pool implementations use PSR-6 interfaces, for details please visit [PHPFig PSR-6](http://www.php-fig.org/psr/psr-6/)
+All cache item pool implementations use PSR-6 interfaces, for details please visit [PHP-FIG PSR-6: Caching Interface](http://www.php-fig.org/psr/psr-6/)
 
 A quick overview of methods available:
 
