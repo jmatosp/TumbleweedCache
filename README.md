@@ -1,7 +1,11 @@
-TumbleweedCache - PHP Caching PSR-6 implementation
-========
+TumbleweedCache
+===============
 
-Caching library implementation using PSR-6 Standard.
+*PHP Caching PSR-6 implementation*
+
+This library provides Calling Libraries cache services without development and driver agnostic.
+
+Implementations for well known cache infrastructure, clever cache using multi-level cache and clustered like cache.
 
 Drivers available: *APCu*, *Redis*, *Memcached*, *Files*, *Memcache*, *Memory*, *Mocked*, *2 Level Cache*, *Clustered* 
 
@@ -53,7 +57,29 @@ Sample using APCu as first level (faster) and Redis second level (fast)
 Cache Methods Available
 =======================
 
-All cache item pool implementations use PSR-6 interfaces, for details please visit [PHPFig PSR-6](http://PHPfiG)
+All cache item pool implementations use PSR-6 interfaces, for details please visit [PHPFig PSR-6](http://www.php-fig.org/psr/psr-6/)
 
 A quick overview of methods available:
+
+CacheItemInterface
+------------------
+
+    /***
+     * Returns the key for the current cache item.
+     *
+     * The key is loaded by the Implementing Library, but should be available to
+     * the higher level callers when needed.
+     *
+     * @return string
+     *   The key string for this cache item.
+     */
+    public function getKey()* 
+
+usage:
+    
+    $cache = CacheItemPoolFactory::make();
+    $cache->save(new Item('my_key', 'value', 60));
+    echo $cache->getItem('my_key)->getKey();
+    // will output "my_key"
+
 

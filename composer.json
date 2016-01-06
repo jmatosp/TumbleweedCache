@@ -8,6 +8,10 @@
   "require": {
     "psr/cache": "~1.0.0"
   },
+  "require-dev": {
+    "phpunit/phpunit": "4.7.*",
+    "satooshi/php-coveralls": "dev-master"
+  },
   "autoload": {
     "psr-4": {
       "JPinto\\TumbleweedCache\\": "src/"
