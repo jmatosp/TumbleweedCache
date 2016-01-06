@@ -30,7 +30,7 @@ class CacheItemPoolFactory
         // user selection
         switch ($type) {
             case self::MEMORY:
-                return new MemoryCacheItemPool();
+                return new MemoryCache();
 
             case self::APCU:
                 if (! static::isAPCuAvailable()) {
@@ -42,7 +42,7 @@ class CacheItemPoolFactory
                 if ( ! static::isRedisAvailable() || ! $args[0] instanceof \Redis) {
                     throw new CacheException('Redis cache not available: not installed or argument not a Redis instance');
                 }
-                return new RedisCacheItemPool($args[0]);
+                return new RedisCache($args[0]);
 
             case self::TWO_LEVEL:
                 if (
@@ -74,7 +74,7 @@ class CacheItemPoolFactory
         if (static::isRedisAvailable()) {
             $redis = new Redis();
             if ($redis->connect('127.0.0.1', 6379)) {
-                return new RedisCacheItemPool($redis);
+                return new RedisCache($redis);
             };
         }
 

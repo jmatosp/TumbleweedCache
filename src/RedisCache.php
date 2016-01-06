@@ -4,20 +4,28 @@ namespace JPinto\TumbleweedCache;
 
 use Psr\Cache\CacheItemInterface;
 use Psr\Cache\CacheItemPoolInterface;
+use Redis;
 
-class MemoryCacheItemPool implements CacheItemPoolInterface
+class RedisCache implements CacheItemPoolInterface
 {
     /**
-     * Storage for items
-     *
      * @var CacheItemInterface[]
      */
-    private $stack;
+    private $deferredStack = [];
 
     /**
-     * @var CacheItemInterface[]
+     * @var Redis
      */
-    private $deferredStack;
+    private $redis;
+
+    /**
+     * RedisCacheItemPool constructor.
+     * @param Redis $redis
+     */
+    public function __construct(Redis $redis)
+    {
+        $this->redis = $redis;
+    }
 
     /**
      * Returns a Cache Item representing the specified key.
@@ -39,15 +47,16 @@ class MemoryCacheItemPool implements CacheItemPoolInterface
     {
         $this->assertValidKey($key);
 
-        if (isset($this->stack[$key])) {
-            return clone $this->stack[$key];
-        }
-
         if (isset($this->deferredStack[$key])) {
             return clone $this->deferredStack[$key];
         }
 
-        return new Item($key, null);
+        $item = $this->redis->get($key);
+        if (false !== $item) {
+            return unserialize($item);
+        };
+
+        return new Item($key);
     }
 
     /**
@@ -70,7 +79,7 @@ class MemoryCacheItemPool implements CacheItemPoolInterface
     {
         $items = [];
 
-        foreach ($keys as $key) {
+        foreach($keys as $key) {
             $this->assertValidKey($key);
             $items[$key] = $this->getItem($key);
         }
@@ -99,7 +108,7 @@ class MemoryCacheItemPool implements CacheItemPoolInterface
     {
         $this->assertValidKey($key);
 
-        return isset($this->stack[$key]);
+        return isset($this->deferredStack[$key]) || $this->redis->exists($key);
     }
 
     /**
@@ -110,10 +119,8 @@ class MemoryCacheItemPool implements CacheItemPoolInterface
      */
     public function clear()
     {
-        $this->stack = [];
         $this->deferredStack = [];
-
-        return true;
+        return $this->redis->flushDB();
     }
 
     /**
@@ -133,9 +140,7 @@ class MemoryCacheItemPool implements CacheItemPoolInterface
     {
         $this->assertValidKey($key);
 
-        if (isset($this->stack[$key])) {
-            unset($this->stack[$key]);
-        }
+        $this->redis->delete($key);
 
         if (isset($this->deferredStack[$key])) {
             unset($this->deferredStack[$key]);
@@ -160,7 +165,7 @@ class MemoryCacheItemPool implements CacheItemPoolInterface
     {
         $result = true;
 
-        foreach ($keys as $key) {
+        foreach($keys as $key) {
             $this->assertValidKey($key);
             $result = $result && $this->deleteItem($key);
         }
@@ -179,9 +184,7 @@ class MemoryCacheItemPool implements CacheItemPoolInterface
      */
     public function save(CacheItemInterface $item)
     {
-        $this->stack[$item->getKey()] = $item;
-
-        return true;
+        return $this->redis->set($item->getKey(), serialize($item));
     }
 
     /**
@@ -196,8 +199,6 @@ class MemoryCacheItemPool implements CacheItemPoolInterface
     public function saveDeferred(CacheItemInterface $item)
     {
         $this->deferredStack[$item->getKey()] = $item;
-
-        return true;
     }
 
     /**
@@ -208,12 +209,14 @@ class MemoryCacheItemPool implements CacheItemPoolInterface
      */
     public function commit()
     {
+        $result = true;
+
         foreach ($this->deferredStack as $key => $item) {
-            $this->save($item);
+            $result = $result && $this->save($item);
             unset($this->deferredStack[$key]);
         }
 
-        return true;
+        return $result;
     }
 
     /**
@@ -230,5 +233,10 @@ class MemoryCacheItemPool implements CacheItemPoolInterface
         }
 
         throw new InvalidArgumentException('invalid key: ' . var_export($key, true));
+    }
+
+    public function __destruct()
+    {
+        $this->commit();
     }
 }
