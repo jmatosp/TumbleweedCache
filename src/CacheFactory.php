@@ -95,6 +95,6 @@ class CacheFactory
      */
     private static function isAPCuAvailable()
     {
-        return (function_exists('apcu_fetch'));
+        return (function_exists('apcu_fetch') || function_exists('apc_fetch'));
     }
 }
