@@ -3,13 +3,13 @@ TumbleweedCache
 
 [![Build Status](https://travis-ci.org/jmatosp/TumbleweedCache.svg?branch=master)](https://travis-ci.org/jmatosp/TumbleweedCache) [![Coverage Status](https://coveralls.io/repos/jmatosp/TumbleweedCache/badge.svg?branch=master&service=github)](https://coveralls.io/github/jmatosp/TumbleweedCache?branch=master)
 
-*PHP Caching PSR-6 implementation*
+*PHP Caching - PSR-6 implementation*
 
-This library provides Calling Libraries cache services without development and driver agnostic.
+This library provides Calling Libraries cache services without development.
 
 Implementations for well known cache infrastructure, clever cache using multi-level cache and clustered like cache.
 
-Drivers available: *APCu*, *Redis*, *Memcached*, *Files*, *Memcache*, *Memory*, *Mocked*, *2 Level Cache*, *Failover* 
+Drivers available: *APCu*, *Redis*, *Files*, *Memcached*, *Memcache*, *Memory*, *2 Level Cache* 
 
 All drivers where tested using PHPUnit and a great [3rd party testing suite for PSR-6](https://github.com/php-cache/integration-tests) 
 
@@ -31,14 +31,18 @@ Simple to use, Tumbleweed Cache will try to use one of the available drivers APC
     $cache->save($item);
     echo $cache->getItem('my_key)->get();
     // will output "value"
+    
+or not using CacheFactory (APCu)
+    
+    $cache = new APCuCache();
+    $cache->getItem('hello')->set('value');
+    echo $cache->getItem('hello')->get();   // output: "value"
 
 You can specify the cache implementation to use:
  
 **APCu**
 
     $cache = CacheItemPoolFactory::make(CacheItemPoolFactory::APCU);
-    // or
-    // $cache = new APCuCacheItemPool();
     $item = $cache->getItem('my_key');
     $item->set('value');
     $cache->save($item);
@@ -50,8 +54,6 @@ You can specify the cache implementation to use:
     $redis = new Redis();
     $redis->connect('127.0.0.1');
     $cache = CacheItemPoolFactory::make(CacheItemPoolFactory::REDIS, $redis);
-    // or
-    // $cache = new RedisCacheItemPool($redis);
     $item = $cache->getItem('my_key');
     $item->set('value');
     $cache->save($item);
@@ -62,14 +64,10 @@ You can specify the cache implementation to use:
 
 **Memcache**
 
-**Failover**
-
-
-
 **Two level**
 
-Two level cache aims to use 2 cache repositories, one local to instance with faster access like APCu and
-one remote share between nodes typically Redis or Memcached.
+Two level cache aims to use 2 cache repositories, as failover with two remote caches or a combination of one local to 
+with faster access like APCu and one remote typically Redis or Memcached.
 
 Sample using APCu as first level (faster) and Redis second level (fast)
 
@@ -83,6 +81,11 @@ Sample using APCu as first level (faster) and Redis second level (fast)
     $cache->save($item);
     echo $cache->getItem('my_key)->get();
     // will output "value"
+    
+
+Cache Factory
+=============
+
 
 Cache Item Pool Interface
 =========================
@@ -114,4 +117,13 @@ usage:
     echo $cache->getItem('my_key)->getKey();
     // will output "my_key"
 
+
+Running tests
+============
+
+To run all test including integration you need:
+
+Redis - installed locally on standard port 127.0.0.1:6379
+APCu - edit your php.ini and add "apc.enable_cli = 1" to enable tests on APCu
+Memcached
 
