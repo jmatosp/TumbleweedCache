@@ -35,7 +35,7 @@ class CacheFactory
 
             case self::APCU:
                 if (! static::isAPCuAvailable()) {
-                    throw new CacheException('APCu is not available: not installed or running on CLI');
+                    throw new CacheException('APCu is not available: not installed');
                 }
                 return new APCuCache();
 
@@ -95,6 +95,6 @@ class CacheFactory
      */
     private static function isAPCuAvailable()
     {
-        return (function_exists('apc_fetch'));
+        return (function_exists('apcu_fetch'));
     }
 }

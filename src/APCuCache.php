@@ -39,7 +39,7 @@ class APCuCache implements CacheItemPoolInterface
             return clone $this->deferredStack[$key];
         }
 
-        $item = apc_fetch($key);
+        $item = apcu_fetch($key);
         if (false !== $item) {
             return unserialize($item);
         }
@@ -107,7 +107,7 @@ class APCuCache implements CacheItemPoolInterface
     public function clear()
     {
         $this->deferredStack = [];
-        return apc_clear_cache();
+        return apcu_clear_cache();
     }
 
     /**
@@ -131,7 +131,7 @@ class APCuCache implements CacheItemPoolInterface
             unset($this->deferredStack[$key]);
         }
 
-        apc_delete($key);
+        apcu_delete($key);
 
         return true;
     }
@@ -170,7 +170,7 @@ class APCuCache implements CacheItemPoolInterface
      */
     public function save(CacheItemInterface $item)
     {
-        return apc_store($item->getKey(), serialize($item));
+        return apcu_store($item->getKey(), serialize($item));
     }
 
     /**
