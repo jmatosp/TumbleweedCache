@@ -42,6 +42,8 @@ You can specify the cache implementation to use:
  
 **APCu**
 
+This driver supports both apc and apcu, works with HHVM (legacy), apcu only PHP7 and apc/apcu on PHP5.6 
+
     $cache = CacheItemPoolFactory::make(CacheItemPoolFactory::APCU);
     $item = $cache->getItem('my_key');
     $item->set('value');

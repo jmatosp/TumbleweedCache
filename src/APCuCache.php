@@ -7,6 +7,8 @@ use Psr\Cache\CacheItemPoolInterface;
 
 /**
  * Driver for APCu Cache
+ * uses apcu_* functions witch are supported by PHP5.6 and PHP7 but not by HHVM.
+ * apc_* function are supported by PHP5.6 and HHVM but not PHP7
  */
 class APCuCache implements CacheItemPoolInterface
 {
@@ -14,6 +16,20 @@ class APCuCache implements CacheItemPoolInterface
      * @var CacheItemInterface[]
      */
     private $deferredStack = [];
+
+    /**
+     * are we on a HHVM
+     * @var bool
+     */
+    private $legacy = false;
+
+    /**
+     * APCuCache constructor.
+     */
+    public function __construct()
+    {
+        $this->legacy = ini_get('apc.enabled') && function_exists('apc_store');
+    }
 
     /**
      * Returns a Cache Item representing the specified key.
@@ -39,7 +55,11 @@ class APCuCache implements CacheItemPoolInterface
             return clone $this->deferredStack[$key];
         }
 
-        $item = apcu_fetch($key);
+        if ($this->legacy) {
+            $item = apc_fetch($key);
+        } else {
+            $item = apcu_fetch($key);
+        }
         if (false !== $item) {
             return unserialize($item);
         }
@@ -95,7 +115,13 @@ class APCuCache implements CacheItemPoolInterface
     {
         $this->assertValidKey($key);
 
-        return isset($this->deferredStack[$key]) || apcu_exists($key);
+        if ($this->legacy) {
+            $exists = apc_exists($key);
+        } else {
+            $exists = apcu_exists($key);
+        }
+
+            return isset($this->deferredStack[$key]) || $exists;
     }
 
     /**
@@ -107,7 +133,12 @@ class APCuCache implements CacheItemPoolInterface
     public function clear()
     {
         $this->deferredStack = [];
-        return apcu_clear_cache();
+
+        if ($this->legacy) {
+            return apc_clear_cache();
+        } else {
+            return apcu_clear_cache();
+        }
     }
 
     /**
@@ -131,7 +162,11 @@ class APCuCache implements CacheItemPoolInterface
             unset($this->deferredStack[$key]);
         }
 
-        apcu_delete($key);
+        if ($this->legacy) {
+            apc_delete($key);
+        } else {
+            apcu_delete($key);
+        }
 
         return true;
     }
@@ -170,7 +205,13 @@ class APCuCache implements CacheItemPoolInterface
      */
     public function save(CacheItemInterface $item)
     {
-        return apcu_store($item->getKey(), serialize($item));
+        if ($this->legacy) {
+            $store = apc_store($item->getKey(), serialize($item));
+        } else {
+            $store = apcu_store($item->getKey(), serialize($item));
+        }
+
+        return $store;
     }
 
     /**
