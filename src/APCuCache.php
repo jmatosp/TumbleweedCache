@@ -95,7 +95,7 @@ class APCuCache implements CacheItemPoolInterface
     {
         $this->assertValidKey($key);
 
-        return isset($this->deferredStack[$key]) || apc_exists($key);
+        return isset($this->deferredStack[$key]) || apcu_exists($key);
     }
 
     /**
