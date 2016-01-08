@@ -24,12 +24,12 @@ Usage
 
 Simple to use, Tumbleweed Cache will try to use one of the available drivers APCu, Redis or Files 
 
-    $cache = CacheItemPoolFactory::make();
+    $cache = CacheFactory::make();
     $item = $cache->getItem('my_key');
     $item->set('value');
     $item->expiresAfter(60);
     $cache->save($item);
-    echo $cache->getItem('my_key)->get();
+    echo $cache->getItem('my_key')->get();
     // will output "value"
     
 or not using CacheFactory (APCu)
@@ -44,18 +44,19 @@ You can specify the cache implementation to use:
 
 This driver supports both apc and apcu, works with HHVM (legacy), apcu only PHP7 and apc/apcu on PHP5.6 
 
-    $cache = CacheItemPoolFactory::make(CacheItemPoolFactory::APCU);
+    $cache = CacheFactory::make(CacheFactory::APCU);
     $item = $cache->getItem('my_key');
     $item->set('value');
     $cache->save($item);
-    echo $cache->getItem('my_key)->get();
+    echo $cache->getItem('my_key')->get();
     // will output "value"
     
 **Redis**
 
+    // if you dont provide a redis connection the factory will try to connect to default port on localhost
     $redis = new Redis();
     $redis->connect('127.0.0.1');
-    $cache = CacheItemPoolFactory::make(CacheItemPoolFactory::REDIS, $redis);
+    $cache = CacheFactory::make(CacheFactory::REDIS, $redis);
     $item = $cache->getItem('my_key');
     $item->set('value');
     $cache->save($item);
@@ -73,23 +74,30 @@ with faster access like APCu and one remote typically Redis or Memcached.
 
 Sample using APCu as first level (faster) and Redis second level (fast)
 
-    $localCache = CacheItemPoolFactory::make(CacheItemPoolFactory::APCU);
-    $redis = new Redis();
-    $redis->connect('127.0.0.1');
-    $remoteCache = CacheItemPoolFactory::make(CacheItemPoolFactory::REDIS, $redis);
-    $megaCache = CacheItemPoolFactory::make(CacheItemPoolFactory::TWO_LEVEL, $localCache, $remoteCache);
+    $localCache = CacheFactory::make(CacheFactory::APCU);
+    $remoteCache = CacheFactory::make(CacheFactory::REDIS);
+    $megaCache = CacheFactory::make(CacheFactory::TWO_LEVEL, $localCache, $remoteCache);
     $item = $cache->getItem('my_key');
     $item->set('value');
     $cache->save($item);
-    echo $cache->getItem('my_key)->get();
+    echo $cache->getItem('my_key')->get();
     // will output "value"
     
 
 Cache Factory
 =============
 
+Cache factory enables creation to different type of cache infrastructure with an easy interface.
 
-Cache Item Pool Interface
+It has a builtin auto-discovery that will try to find the fastest one available, to use the auto-discovery 
+simply call the factory without parameters:
+
+    $cacheService = CacheFactory::make();
+    
+Auto-discovery will try to use cache infrastructure by this order: APCu, APC, Redis, Memcached, Files    
+
+
+PSR-6 Cache Interface
 =========================
 
 All cache item pool implementations use PSR-6 interfaces, for details please visit [PHP-FIG PSR-6: Caching Interface](http://www.php-fig.org/psr/psr-6/)
