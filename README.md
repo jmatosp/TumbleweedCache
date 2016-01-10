@@ -9,7 +9,7 @@ This library provides Calling Libraries cache services without development.
 
 Implementations for well known cache infrastructure, clever cache using multi-level cache and clustered like cache.
 
-Drivers available: *APCu*, *Redis*, *Files*, *Memcached*, *Memcache*, *Memory*, *2 Level Cache* 
+Drivers available: *APCu*, *Redis*, *Files*, *Memcached*, *Memory*, *2 Level Cache* 
 
 All drivers where tested using PHPUnit and a great [3rd party testing suite for PSR-6](https://github.com/php-cache/integration-tests) 
 
@@ -25,9 +25,9 @@ Usage
 Simple to use, Tumbleweed Cache will try to use one of the available drivers APCu, Redis or Files 
 
     $cache = CacheFactory::make();
-    $item = $cache->getItem('my_key');
-    $item->set('value');
-    $item->expiresAfter(60);
+    $item = $cache->getItem('my_key')
+                ->set('value')
+                ->expiresAfter(60);
     $cache->save($item);
     echo $cache->getItem('my_key')->get();
     // will output "value"
@@ -45,8 +45,7 @@ You can specify the cache implementation to use:
 This driver supports both apc and apcu, works with HHVM (legacy), apcu only PHP7 and apc/apcu on PHP5.6 
 
     $cache = CacheFactory::make(CacheFactory::APCU);
-    $item = $cache->getItem('my_key');
-    $item->set('value');
+    $item = $cache->getItem('my_key')->set('value');
     $cache->save($item);
     echo $cache->getItem('my_key')->get();
     // will output "value"
@@ -57,8 +56,7 @@ This driver supports both apc and apcu, works with HHVM (legacy), apcu only PHP7
     $redis = new Redis();
     $redis->connect('127.0.0.1');
     $cache = CacheFactory::make(CacheFactory::REDIS, $redis);
-    $item = $cache->getItem('my_key');
-    $item->set('value');
+    $item = $cache->getItem('my_key')->set('value');
     $cache->save($item);
     echo $cache->getItem('my_key)->get();
     // will output "value"
@@ -77,8 +75,7 @@ Sample using APCu as first level (faster) and Redis second level (fast)
     $localCache = CacheFactory::make(CacheFactory::APCU);
     $remoteCache = CacheFactory::make(CacheFactory::REDIS);
     $megaCache = CacheFactory::make(CacheFactory::TWO_LEVEL, $localCache, $remoteCache);
-    $item = $cache->getItem('my_key');
-    $item->set('value');
+    $item = $cache->getItem('my_key')->set('value');
     $cache->save($item);
     echo $cache->getItem('my_key')->get();
     // will output "value"
@@ -120,9 +117,8 @@ CacheItemInterface - getKey()
 
 usage:
     
-    $cache = CacheItemPoolFactory::make();
-    $item = $cache->getItem('my_key');
-    $item->set('value');
+    $cache = CacheFactory::make();
+    $item = $cache->getItem('my_key')->set('value');
     $cache->save($item);
     echo $cache->getItem('my_key)->getKey();
     // will output "my_key"
@@ -137,3 +133,10 @@ To run all test including integration you need:
 - APCu - edit your php.ini and add "apc.enable_cli=1" after the extension loding to enable tests on APCu
 - Memcached
 
+Optionally you can run on Vagrant:
+
+    vagrant up
+    vagrant ssh
+    cd /vagrant
+    composer install
+    vendor/bin/phpunit
