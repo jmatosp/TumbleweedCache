@@ -122,6 +122,8 @@ class Item implements CacheItemInterface
     {
         $this->isHit = true;
         $this->value = $value;
+
+        return $this;
     }
 
     /**
@@ -139,6 +141,8 @@ class Item implements CacheItemInterface
     public function expiresAt($expiration)
     {
         $this->expiresAt = $expiration;
+
+        return $this;
     }
 
     /**
@@ -163,5 +167,7 @@ class Item implements CacheItemInterface
         } else {
             $this->expiresAt = null;
         }
+
+        return $this;
     }
 }

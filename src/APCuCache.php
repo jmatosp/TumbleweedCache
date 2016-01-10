@@ -226,6 +226,8 @@ class APCuCache implements CacheItemPoolInterface
     public function saveDeferred(CacheItemInterface $item)
     {
         $this->deferredStack[$item->getKey()] = $item;
+
+        return true;
     }
 
     /**

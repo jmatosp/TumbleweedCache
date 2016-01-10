@@ -133,7 +133,7 @@ Running tests
 
 To run all test including integration you need:
 
-Redis - installed locally on standard port 127.0.0.1:6379
-APCu - edit your php.ini and add "apc.enable_cli = 1" to enable tests on APCu
-Memcached
+- Redis - installed locally on standard port 127.0.0.1:6379
+- APCu - edit your php.ini and add "apc.enable_cli=1" after the extension loding to enable tests on APCu
+- Memcached
 
