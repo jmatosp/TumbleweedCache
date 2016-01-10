@@ -85,10 +85,23 @@ class APCuCache implements CacheItemPoolInterface
      */
     public function getItems(array $keys = array())
     {
-        $items = [];
-
         foreach ($keys as $key) {
-            $items[$key] = $this->getItem($key);
+            if ($this->assertValidKey($key)) {
+                throw new InvalidArgumentException($key);
+            }
+        }
+
+        if ($this->legacy) {
+            $values = apc_fetch($keys);
+        } else {
+            $values = apcu_fetch($keys);
+        }
+
+        $items = [];
+        if (false !== $values) {
+            foreach ($keys as $key) {
+                $items[$key] = isset($values[$key]) ? unserialize($values[$key]) : new Item($key);
+            }
         }
 
         return $items;
