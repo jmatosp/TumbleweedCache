@@ -32,7 +32,10 @@ Vagrant.configure(2) do |config|
   config.vm.provision "shell", inline: <<-SHELL
     sudo apt-get update
     curl -sS https://getcomposer.org/installer | sudo php -- --install-dir=/usr/local/bin --filename=composer
-    sudo apt-get install php5-curl php5-apcu php5-redis redis-server memcached -y
+    sudo apt-get install php5-curl php5-apcu php5-redis redis-server memcached php5-dev php5-runkit -y
+    sudo pecl install runkit
     sudo sh -c "echo 'apc.enable_cli=1' >> /etc/php5/cli/conf.d/20-apcu.ini"
+    sudo sh -c "echo 'extension=runkit.so=1' >> /etc/php5/cli/conf.d/20-apcu.ini"
+    sudo sh -c "echo 'runkit.internal_override=1' >> /etc/php5/cli/php.ini"
   SHELL
 end

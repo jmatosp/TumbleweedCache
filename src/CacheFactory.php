@@ -82,10 +82,6 @@ class CacheFactory
                 return new RedisCache($redis);
             };
         }
-        // use APCu first if available
-        if (static::isAPCuAvailable()) {
-            return new APCuCache();
-        }
 
         if (static::isFilesWritable()) {
             return new FileCache();
