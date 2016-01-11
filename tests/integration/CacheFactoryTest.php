@@ -35,6 +35,12 @@ class CacheFactoryTest extends PHPUnit_Framework_TestCase
         $cache = CacheFactory::make(CacheFactory::REDIS, 'this is not a Redis instance');
     }
 
+    public function testFileCacgeFactory()
+    {
+        $cache = CacheFactory::make(CacheFactory::FILE);
+        $this->assertInstanceOf('Psr\Cache\CacheItemPoolInterface', $cache);
+    }
+
 //    /**
 //     * @expectedException \Psr\Cache\CacheException
 //     */

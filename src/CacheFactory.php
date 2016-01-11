@@ -47,6 +47,9 @@ class CacheFactory
                 return new RedisCache($arg0);
 
             case self::FILE:
+                if (! static::isFilesWritable()) {
+                    throw new CacheException('temp dir is not writable');
+                }
                 return new FileCache();
 
             case self::TWO_LEVEL:
