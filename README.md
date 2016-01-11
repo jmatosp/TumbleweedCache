@@ -1,7 +1,7 @@
 TumbleweedCache
 ===============
 
-[![Build Status](https://travis-ci.org/jmatosp/TumbleweedCache.svg?branch=master)](https://travis-ci.org/jmatosp/TumbleweedCache) [![Coverage Status](https://coveralls.io/repos/jmatosp/TumbleweedCache/badge.svg?branch=master&service=github)](https://coveralls.io/github/jmatosp/TumbleweedCache?branch=master)
+[![Build Status](https://travis-ci.org/jmatosp/TumbleweedCache.svg?branch=master)](https://travis-ci.org/jmatosp/TumbleweedCache) [![Coverage Status](https://coveralls.io/repos/jmatosp/TumbleweedCache/badge.svg?branch=master&service=github)](https://coveralls.io/github/jmatosp/TumbleweedCache?branch=master) [![Latest Stable Version](https://poser.pugx.org/jmatosp/tumbleweed-cache/v/stable)](https://packagist.org/packages/jmatosp/tumbleweed-cache) [![Total Downloads](https://poser.pugx.org/jmatosp/tumbleweed-cache/downloads)](https://packagist.org/packages/jmatosp/tumbleweed-cache) [![Latest Unstable Version](https://poser.pugx.org/jmatosp/tumbleweed-cache/v/unstable)](https://packagist.org/packages/jmatosp/tumbleweed-cache) [![License](https://poser.pugx.org/jmatosp/tumbleweed-cache/license)](https://packagist.org/packages/jmatosp/tumbleweed-cache)
 
 *PHP Caching - PSR-6 implementation*
 
