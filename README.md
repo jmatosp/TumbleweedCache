@@ -52,7 +52,7 @@ This driver supports both apc and apcu, works with HHVM (legacy), apcu only PHP7
     
 **Redis**
 
-    // if you dont provide a redis connection the factory will try to connect to default port on localhost
+    // if you don't provide a redis connection the factory will try to connect to default port on localhost
     $redis = new Redis();
     $redis->connect('127.0.0.1');
     $cache = CacheFactory::make(CacheFactory::REDIS, $redis);
@@ -98,31 +98,6 @@ PSR-6 Cache Interface
 =========================
 
 All cache item pool implementations use PSR-6 interfaces, for details please visit [PHP-FIG PSR-6: Caching Interface](http://www.php-fig.org/psr/psr-6/)
-
-A quick overview of methods available:
-
-CacheItemInterface - getKey()
----------------------------
-
-    /***
-     * Returns the key for the current cache item.
-     *
-     * The key is loaded by the Implementing Library, but should be available to
-     * the higher level callers when needed.
-     *
-     * @return string
-     *   The key string for this cache item.
-     */
-    public function getKey()* 
-
-usage:
-    
-    $cache = CacheFactory::make();
-    $item = $cache->getItem('my_key')->set('value');
-    $cache->save($item);
-    echo $cache->getItem('my_key)->getKey();
-    // will output "my_key"
-
 
 Running tests
 ============

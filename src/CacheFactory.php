@@ -14,6 +14,7 @@ class CacheFactory
     const APCU = 2;
     const REDIS = 3;
     const TWO_LEVEL = 4;
+    const FILE = 5;
 
     /**
      * @param null $type
@@ -44,6 +45,9 @@ class CacheFactory
                     throw new CacheException('Redis cache not available: not installed or argument not a Redis instance');
                 }
                 return new RedisCache($arg0);
+
+            case self::FILE:
+                return new FileCache();
 
             case self::TWO_LEVEL:
                 if (
@@ -78,8 +82,21 @@ class CacheFactory
                 return new RedisCache($redis);
             };
         }
+        // use APCu first if available
+        if (static::isAPCuAvailable()) {
+            return new APCuCache();
+        }
+
+        if (static::isFilesWritable()) {
+            return new FileCache();
+        }
 
         throw new CacheException('could not find a suitable cache pool');
+    }
+
+    private static function isFilesWritable()
+    {
+        return is_writable(sys_get_temp_dir());
     }
 
     /**

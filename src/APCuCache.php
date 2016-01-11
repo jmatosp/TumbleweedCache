@@ -134,7 +134,7 @@ class APCuCache implements CacheItemPoolInterface
             $exists = apcu_exists($key);
         }
 
-            return isset($this->deferredStack[$key]) || $exists;
+        return isset($this->deferredStack[$key]) || $exists;
     }
 
     /**
@@ -195,6 +195,8 @@ class APCuCache implements CacheItemPoolInterface
      *
      * @return bool
      *   True if the items were successfully removed. False if there was an error.
+     *
+     * @todo performance tune to fetch all keys at once from driver
      */
     public function deleteItems(array $keys)
     {

@@ -74,6 +74,7 @@ class RedisCache implements CacheItemPoolInterface
      *   each item. A Cache item will be returned for each key, even if that
      *   key is not found. However, if no keys are specified then an empty
      *   traversable MUST be returned instead.
+     * @todo performance tune to fetch all keys at once from driver
      */
     public function getItems(array $keys = array())
     {
@@ -134,6 +135,8 @@ class RedisCache implements CacheItemPoolInterface
      *
      * @return bool
      *   True if the item was successfully removed. False if there was an error.
+     *
+     * @todo performance tune to fetch all keys at once from driver
      */
     public function deleteItem($key)
     {
@@ -159,6 +162,8 @@ class RedisCache implements CacheItemPoolInterface
      *
      * @return bool
      *   True if the items were successfully removed. False if there was an error.
+     *
+     * @todo performance tune to fetch all keys at once from driver
      */
     public function deleteItems(array $keys)
     {
