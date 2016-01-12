@@ -2,6 +2,7 @@
 
 namespace JPinto\TumbleweedCache;
 
+use DateTimeInterface;
 use Psr\Cache\CacheItemInterface;
 use Psr\Cache\CacheItemPoolInterface;
 
@@ -10,7 +11,7 @@ use Psr\Cache\CacheItemPoolInterface;
  * uses apcu_* functions witch are supported by PHP5.6 and PHP7 but not by HHVM.
  * apc_* function are supported by PHP5.6 and HHVM but not PHP7
  */
-class APCuCache implements CacheItemPoolInterface
+class APCuCache implements CacheItemPoolInterface, CacheItemObserverInterface
 {
     /**
      * @var CacheItemInterface[]
@@ -22,6 +23,11 @@ class APCuCache implements CacheItemPoolInterface
      * @var bool
      */
     private $legacy = false;
+
+    /**
+     * @var CacheItemSubjectInterface
+     */
+    private $itemsObserving;
 
     /**
      * APCuCache constructor.
@@ -61,10 +67,22 @@ class APCuCache implements CacheItemPoolInterface
             $item = apcu_fetch($key);
         }
         if (false !== $item) {
-            return unserialize($item);
+            /** @var Item $item */
+            $item = unserialize($item);
+
+            // observe this item
+            $item->attach($this);
+
+            return $item;
         }
 
-        return new Item($key);
+        // new Item
+        $item = new Item($key);
+
+        // observe this item
+        $item->attach($this);
+
+        return $item;
     }
 
     /**
@@ -100,6 +118,8 @@ class APCuCache implements CacheItemPoolInterface
         if (false !== $values) {
             foreach ($keys as $key) {
                 $items[$key] = isset($values[$key]) ? unserialize($values[$key]) : new Item($key);
+                // observe this item
+                $items[$key]->attach($this);
             }
         }
 
@@ -146,6 +166,8 @@ class APCuCache implements CacheItemPoolInterface
     {
         $this->deferredStack = [];
 
+        $this->itemsObserving = [];
+
         if ($this->legacy) {
             return apc_clear_cache();
         } else {
@@ -169,6 +191,16 @@ class APCuCache implements CacheItemPoolInterface
     public function deleteItem($key)
     {
         $this->assertValidKey($key);
+
+        if (null !== $this->itemsObserving) {
+            foreach ($this->itemsObserving as $subjectKey =>  $subjects) {
+                /** @var Item $item */
+                $item = $subjects['item'];
+                if ($item->getKey() === $key) {
+                    unset($this->itemsObserving[$subjectKey]);
+                }
+            }
+        }
 
         if (isset($this->deferredStack[$key])) {
             unset($this->deferredStack[$key]);
@@ -257,7 +289,7 @@ class APCuCache implements CacheItemPoolInterface
     public function commit()
     {
         $result = true;
-
+        
         foreach ($this->deferredStack as $key => $item) {
             $result = $result && $this->save($item);
             unset($this->deferredStack[$key]);
@@ -292,5 +324,35 @@ class APCuCache implements CacheItemPoolInterface
     {
         // is in stack and not expired
         return isset($this->deferredStack[$key]) && $this->deferredStack[$key]->isHit();
+    }
+
+    /**
+     * We get notified whenever a Item gets a setExpiredAt of setExpiredAfter
+     * @param CacheItemSubjectInterface $cacheItemSubject
+     * @param DateTimeInterface $expiresAt
+     */
+    public function update(CacheItemSubjectInterface $cacheItemSubject, DateTimeInterface $expiresAt)
+    {
+        $this->itemsObserving[] = ['item' => $cacheItemSubject, 'expiresAt' => $expiresAt];
+
+        // garbage collector
+        $this->vacuumItemsObserving();
+    }
+
+    /**
+     * Prevent memory leaks
+     */
+    private function vacuumItemsObserving()
+    {
+        if (null === $this->itemsObserving) {
+            return;
+        }
+
+        $now = new \DateTime();
+        foreach ($this->itemsObserving as $key => $item) {
+            if ($now < $item['expiresAt']) {
+                unset($this->itemsObserving[$key]);
+            }
+        }
     }
 }

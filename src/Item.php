@@ -6,7 +6,7 @@ use DateTime;
 use DateTimeInterface;
 use Psr\Cache\CacheItemInterface;
 
-class Item implements CacheItemInterface
+class Item implements CacheItemInterface, CacheItemSubjectInterface
 {
     /**
      * @var string;
@@ -27,6 +27,11 @@ class Item implements CacheItemInterface
      * @var bool
      */
     private $isHit = false;
+
+    /**
+     * @var CacheItemObserverInterface
+     */
+    private $observer;
 
     /**
      * Item constructor.
@@ -134,6 +139,9 @@ class Item implements CacheItemInterface
     {
         $this->expiresAt = $expiration;
 
+        // notify observers
+        $this->notify();
+
         return $this;
     }
 
@@ -173,10 +181,35 @@ class Item implements CacheItemInterface
     public static function isValidKey($key)
     {
         $invalid = '{}()/\@:';
-        if (is_string($key) && ! preg_match('/['.preg_quote($invalid, '/').']/', $key)) {
+        if (is_string($key) && !preg_match('/[' . preg_quote($invalid, '/') . ']/', $key)) {
             return true;
         }
 
         return false;
+    }
+
+    public function attach(CacheItemObserverInterface $observer)
+    {
+        $this->observer = $observer;
+    }
+
+    public function detach(CacheItemObserverInterface $observer)
+    {
+        $this->observer = null;
+    }
+
+    public function notify()
+    {
+        // no observers
+        if (null === $this->observer) {
+            return;
+        }
+
+        // doesnt expires
+        if (null === $this->expiresAt) {
+            return;
+        }
+
+        $this->observer->update($this, $this->expiresAt);
     }
 }
