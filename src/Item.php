@@ -26,23 +26,15 @@ class Item implements CacheItemInterface
     /**
      * @var bool
      */
-    private $isHit = true;
+    private $isHit = false;
 
     /**
      * Item constructor.
      * @param string $key
-     * @param mixed $value
-     * @param null|int|DateTimeInterface $expiresAfter
      */
-    public function __construct($key, $value = null, $expiresAfter = null)
+    public function __construct($key)
     {
         $this->key = $key;
-        $this->value = $value;
-        $this->expiresAfter($expiresAfter);
-
-        if (null === $value) {
-            $this->isHit = false;
-        }
     }
 
     /**

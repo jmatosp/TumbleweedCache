@@ -57,7 +57,7 @@ class TwoLevelCache implements CacheItemPoolInterface
         }
 
         // not found anywhere
-        return new Item($key, null);
+        return new Item($key);
     }
 
     /**
