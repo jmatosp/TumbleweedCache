@@ -40,18 +40,4 @@ class CacheFactoryTest extends PHPUnit_Framework_TestCase
         $cache = CacheFactory::make(CacheFactory::FILE);
         $this->assertInstanceOf('Psr\Cache\CacheItemPoolInterface', $cache);
     }
-
-//    /**
-//     * @expectedException \Psr\Cache\CacheException
-//     */
-//    public function testAPCuNotAvailable()
-//    {
-//        runkit_function_rename('apcu_fetch', 'copy_apcu_fetch');
-//        runkit_function_rename('apc_fetch', 'copy_apc_fetch');
-//
-//        $cache = CacheFactory::make(CacheFactory::APCU);
-//
-//        runkit_function_rename('copy_apcu_fetch', 'apcu_fetch');
-//        runkit_function_rename('copy_apc_fetch', 'apc_fetch');
-//    }
 }

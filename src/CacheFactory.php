@@ -7,6 +7,7 @@ use Redis;
 
 /**
  * Creates a cache pool instance base on user selection or tries to guess the best one
+ * @codeCoverageIgnore has partial coverage
  */
 class CacheFactory
 {
@@ -21,6 +22,7 @@ class CacheFactory
      * @param $arg0
      * @param $arg1
      * @throws CacheException
+     *
      * @return CacheItemPoolInterface
      */
     public static function make($type = null, $arg0 = null, $arg1 = null)
@@ -68,7 +70,6 @@ class CacheFactory
 
     /**
      * @return CacheItemPoolInterface
-     *
      * @throws CacheException
      */
     private static function autoDiscovery()
