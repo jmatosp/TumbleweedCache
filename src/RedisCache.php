@@ -108,7 +108,9 @@ class RedisCache implements CacheItemPoolInterface
     {
         $this->assertValidKey($key);
 
-        return isset($this->deferredStack[$key]) || $this->redis->exists($key);
+        $itemInDeferredNotExpired = isset($this->deferredStack[$key]) && $this->deferredStack[$key]->isHit();
+
+        return $itemInDeferredNotExpired || $this->redis->exists($key);
     }
 
     /**
@@ -187,6 +189,10 @@ class RedisCache implements CacheItemPoolInterface
      */
     public function save(CacheItemInterface $item)
     {
+        if ( ! $item->isHit()) {
+            return false;
+        }
+
         return $this->redis->set($item->getKey(), serialize($item));
     }
 
@@ -232,12 +238,9 @@ class RedisCache implements CacheItemPoolInterface
      */
     private function assertValidKey($key)
     {
-        $invalid = '{}()/\@:';
-        if (is_string($key) && ! preg_match('/['.preg_quote($invalid, '/').']/', $key)) {
-            return;
+        if ( ! Item::isValidKey($key)) {
+            throw new InvalidArgumentException('invalid key: ' . var_export($key, true));
         }
-
-        throw new InvalidArgumentException('invalid key: ' . var_export($key, true));
     }
 
     public function __destruct()

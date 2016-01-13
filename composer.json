@@ -18,7 +18,7 @@
   "require-dev": {
     "phpunit/phpunit": "5.1.*",
     "satooshi/php-coveralls": "~1.0.0",
-    "cache/integration-tests": "0.3.0",
+    "cache/integration-tests": "0.*",
     "fabpot/php-cs-fixer": "^1.11"
   },
   "autoload": {

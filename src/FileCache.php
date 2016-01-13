@@ -95,7 +95,9 @@ class FileCache implements CacheItemPoolInterface
     {
         $this->assertValidKey($key);
 
-        return isset($this->deferredStack[$key]) || file_exists($this->filenameFor($key));
+        $itemInDeferredNotExpired = isset($this->deferredStack[$key]) && $this->deferredStack[$key]->isHit();
+
+        return $itemInDeferredNotExpired || file_exists($this->filenameFor($key));
     }
 
     /**
@@ -176,6 +178,10 @@ class FileCache implements CacheItemPoolInterface
      */
     public function save(CacheItemInterface $item)
     {
+        if ( ! $item->isHit()) {
+            return false;
+        }
+
         $bytes = file_put_contents($this->filenameFor($item->getKey()), serialize($item));
 
         return (false !== $bytes);
@@ -228,12 +234,9 @@ class FileCache implements CacheItemPoolInterface
      */
     private function assertValidKey($key)
     {
-        $invalid = '{}()/\@:';
-        if (is_string($key) && ! preg_match('/['.preg_quote($invalid, '/').']/', $key)) {
-            return;
+        if ( ! Item::isValidKey($key)) {
+            throw new InvalidArgumentException('invalid key: ' . var_export($key, true));
         }
-
-        throw new InvalidArgumentException('invalid key: ' . var_export($key, true));
     }
 
     /**
