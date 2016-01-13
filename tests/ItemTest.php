@@ -60,6 +60,15 @@ class ItemTest extends PHPUnit_Framework_TestCase
         $this->assertTrue($item->isHit());
     }
 
+    public function testExpiresAfterDateInterval()
+    {
+        $item = new Item('my_key');
+        $item->set(new stdClass());
+        $tomorrow = (new DateTime('now'))->add(DateInterval::createFromDateString('1 day'));
+        $item->expiresAfter($tomorrow);
+        $this->assertTrue($item->isHit());
+    }
+
     public function testExpiresAtTomorrowIsHit()
     {
         $item = new Item('my_key');
