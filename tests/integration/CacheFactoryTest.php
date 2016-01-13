@@ -58,7 +58,7 @@ class CacheFactoryTest extends PHPUnit_Framework_TestCase
         // hack and delete on first cache
         $memory1->clear();
 
-        $this->assertTrue($memory2->getItem('key')->isHit());
+        $this->assertTrue($cache->getItem('key')->isHit());
     }
 
     public function testMemcachedDeleteMultiWorksOnHHVM()
@@ -69,7 +69,11 @@ class CacheFactoryTest extends PHPUnit_Framework_TestCase
         $cache = CacheFactory::make(CacheFactory::MEMCACHED, $memcached);
 
         // emulate HHVM environment
-        define('HHVM_VERSION', 'cat');
+        $redefined = false;
+        if ( ! defined('HHVM_VERSION')) {
+            $redefined = true;
+            define('HHVM_VERSION', 'cat');
+        }
 
         $item = $cache->getITem('key')->set('value');
         $cache->save($item);
@@ -78,5 +82,8 @@ class CacheFactoryTest extends PHPUnit_Framework_TestCase
         $cache->deleteItems(['key']);
         $this->assertFalse($cache->getItem('key')->isHit());
 
+        if ($redefined) {
+            runkit_constant_remove('HHVM_VERSION');
+        }
     }
 }
