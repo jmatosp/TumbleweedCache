@@ -123,7 +123,9 @@ class MemcachedCache implements CacheItemPoolInterface
 
         $item = $this->getItem($key);
 
-        return (isset($this->deferredStack[$key]) && $this->deferredStack[$key]->isHit()) || $item->isHit();
+        $itemInDeferredNotExpired = isset($this->deferredStack[$key]) && $this->deferredStack[$key]->isHit();
+
+        return ($itemInDeferredNotExpired) || $item->isHit();
     }
 
     /**
@@ -180,7 +182,7 @@ class MemcachedCache implements CacheItemPoolInterface
     public function deleteItems(array $keys)
     {
         foreach ($keys as $key) {
-            if (! Item::isValidKey($key)) {
+            if ( ! Item::isValidKey($key)) {
                 throw new InvalidArgumentException('invalid key: ' . var_export($key, true));
             }
 

@@ -226,11 +226,8 @@ class MemoryCache implements CacheItemPoolInterface
      */
     private function assertValidKey($key)
     {
-        $invalid = '{}()/\@:';
-        if (is_string($key) && ! preg_match('/['.preg_quote($invalid, '/').']/', $key)) {
-            return;
+        if ( ! Item::isValidKey($key)) {
+            throw new InvalidArgumentException('invalid key: ' . var_export($key, true));
         }
-
-        throw new InvalidArgumentException('invalid key: ' . var_export($key, true));
     }
 }
