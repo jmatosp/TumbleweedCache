@@ -98,7 +98,12 @@ class MemoryCache implements CacheItemPoolInterface
     {
         $this->assertValidKey($key);
 
-        return isset($this->stack[$key]) || isset($this->deferredStack[$key]);
+        $itemInDeferredNotExpired = isset($this->deferredStack[$key]) && $this->deferredStack[$key]->isHit();
+
+        return (
+            $itemInDeferredNotExpired ||
+            (isset($this->stack[$key]) && $this->stack[$key]->isHit())
+        );
     }
 
     /**
@@ -177,6 +182,10 @@ class MemoryCache implements CacheItemPoolInterface
      */
     public function save(CacheItemInterface $item)
     {
+        if ( ! $item->isHit()) {
+            return false;
+        }
+
         $this->stack[$item->getKey()] = $item;
 
         return true;
@@ -222,11 +231,8 @@ class MemoryCache implements CacheItemPoolInterface
      */
     private function assertValidKey($key)
     {
-        $invalid = '{}()/\@:';
-        if (is_string($key) && ! preg_match('/['.preg_quote($invalid, '/').']/', $key)) {
-            return;
+        if ( ! Item::isValidKey($key)) {
+            throw new InvalidArgumentException('invalid key: ' . var_export($key, true));
         }
-
-        throw new InvalidArgumentException('invalid key: ' . var_export($key, true));
     }
 }
