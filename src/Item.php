@@ -162,4 +162,21 @@ class Item implements CacheItemInterface
 
         return $this;
     }
+
+    /**
+     * Checks if a key is valid for APCu cache storage
+     *
+     * @param $key
+     * @return bool
+     * @throws InvalidArgumentException
+     */
+    public static function isValidKey($key)
+    {
+        $invalid = '{}()/\@:';
+        if (is_string($key) && ! preg_match('/['.preg_quote($invalid, '/').']/', $key)) {
+            return true;
+        }
+
+        return false;
+    }
 }

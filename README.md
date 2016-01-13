@@ -76,7 +76,13 @@ Cache factory will check if TMP dir is writable and throw and exception if not.
 
 **Memcache**
 
-Not available at the moment.
+    $memcached = new Memcached('my_app_ip');
+    $memcached->addServer('localhost', 11211);
+    $cache = CacheFactory::make(CacheFactory::MEMCACHED, $memcached);
+    $item = $cache->getItem('my_key')->set('value');
+    $cache->save($item);
+    echo $cache->getItem('my_key)->get();
+    // will output "value"
 
 
 **Two level**

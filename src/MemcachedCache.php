@@ -2,15 +2,11 @@
 
 namespace JPinto\TumbleweedCache;
 
+use Memcached;
 use Psr\Cache\CacheItemInterface;
 use Psr\Cache\CacheItemPoolInterface;
 
-/**
- * Driver for APCu Cache
- * uses apcu_* functions witch are supported by PHP5.6 and PHP7 but not by HHVM.
- * apc_* function are supported by PHP5.6 and HHVM but not PHP7
- */
-class APCuCache implements CacheItemPoolInterface
+class MemcachedCache implements CacheItemPoolInterface
 {
     /**
      * @var CacheItemInterface[]
@@ -18,17 +14,17 @@ class APCuCache implements CacheItemPoolInterface
     private $deferredStack = [];
 
     /**
-     * are we on a HHVM
-     * @var bool
+     * @var Memcached
      */
-    private $legacy = false;
+    private $cacheClient;
 
     /**
-     * APCuCache constructor.
+     * MemcachedCache constructor.
+     * @param Memcached $memcached
      */
-    public function __construct()
+    public function __construct(Memcached $memcached)
     {
-        $this->legacy = ini_get('apc.enabled') && function_exists('apc_store');
+        $this->cacheClient = $memcached;
     }
 
     /**
@@ -49,17 +45,15 @@ class APCuCache implements CacheItemPoolInterface
      */
     public function getItem($key)
     {
-        $this->assertValidKey($key);
+        if (! Item::isValidKey($key)) {
+            throw new InvalidArgumentException('invalid key: ' . var_export($key, true));
+        }
 
         if (isset($this->deferredStack[$key])) {
             return clone $this->deferredStack[$key];
         }
 
-        if ($this->legacy) {
-            $item = apc_fetch($key);
-        } else {
-            $item = apcu_fetch($key);
-        }
+        $item = $this->cacheClient->get($key);
         if (false !== $item) {
             return unserialize($item);
         }
@@ -86,14 +80,12 @@ class APCuCache implements CacheItemPoolInterface
     public function getItems(array $keys = array())
     {
         foreach ($keys as $key) {
-            $this->assertValidKey($key);
+            if (! Item::isValidKey($key)) {
+                throw new InvalidArgumentException('invalid key: ' . var_export($key, true));
+            }
         }
 
-        if ($this->legacy) {
-            $values = apc_fetch($keys);
-        } else {
-            $values = apcu_fetch($keys);
-        }
+        $values = $this->cacheClient->getMulti($keys);
 
         /** @var Item[] $items */
         $items = [];
@@ -125,15 +117,13 @@ class APCuCache implements CacheItemPoolInterface
      */
     public function hasItem($key)
     {
-        $this->assertValidKey($key);
-
-        if ($this->legacy) {
-            $exists = apc_exists($key);
-        } else {
-            $exists = apcu_exists($key);
+        if (! Item::isValidKey($key)) {
+            throw new InvalidArgumentException('invalid key: ' . var_export($key, true));
         }
 
-        return isset($this->deferredStack[$key]) || $exists;
+        $item = $this->getItem($key);
+
+        return isset($this->deferredStack[$key]) || $item->isHit();
     }
 
     /**
@@ -146,11 +136,7 @@ class APCuCache implements CacheItemPoolInterface
     {
         $this->deferredStack = [];
 
-        if ($this->legacy) {
-            return apc_clear_cache();
-        } else {
-            return apcu_clear_cache();
-        }
+        return $this->cacheClient->flush();
     }
 
     /**
@@ -168,17 +154,13 @@ class APCuCache implements CacheItemPoolInterface
      */
     public function deleteItem($key)
     {
-        $this->assertValidKey($key);
-
-        if (isset($this->deferredStack[$key])) {
-            unset($this->deferredStack[$key]);
+        if ( ! Item::isValidKey($key)) {
+            throw new InvalidArgumentException('invalid key: ' . var_export($key, true));
         }
 
-        if ($this->legacy) {
-            apc_delete($key);
-        } else {
-            apcu_delete($key);
-        }
+        $this->deleteDeferred($key);
+
+        $this->cacheClient->delete($key);
 
         return true;
     }
@@ -194,18 +176,20 @@ class APCuCache implements CacheItemPoolInterface
      *
      * @return bool
      *   True if the items were successfully removed. False if there was an error.
-     *
-     * @todo performance tune to fetch all keys at once from driver
      */
     public function deleteItems(array $keys)
     {
-        $result = true;
-
         foreach ($keys as $key) {
-            $result = $result && $this->deleteItem($key);
+            if (! Item::isValidKey($key)) {
+                throw new InvalidArgumentException('invalid key: ' . var_export($key, true));
+            }
+
+            $this->deleteDeferred($key);
         }
 
-        return $result;
+        $this->cacheClient->deleteMulti($keys);
+
+        return true;
     }
 
     /**
@@ -219,13 +203,7 @@ class APCuCache implements CacheItemPoolInterface
      */
     public function save(CacheItemInterface $item)
     {
-        if ($this->legacy) {
-            $store = apc_store($item->getKey(), serialize($item));
-        } else {
-            $store = apcu_store($item->getKey(), serialize($item));
-        }
-
-        return $store;
+        return $this->cacheClient->add($item->getKey(), serialize($item));
     }
 
     /**
@@ -252,26 +230,22 @@ class APCuCache implements CacheItemPoolInterface
      */
     public function commit()
     {
-        $result = true;
-
+        $multi = [];
         foreach ($this->deferredStack as $key => $item) {
-            $result = $result && $this->save($item);
-            unset($this->deferredStack[$key]);
+            $multi[$key] = serialize($this->deferredStack[$key]);
+            $this->deleteDeferred($key);
         }
 
-        return $result;
+        return $this->cacheClient->setMulti($multi);
     }
 
     /**
-     * Checks if a key is valid for APCu cache storage
-     *
      * @param $key
-     * @throws InvalidArgumentException
      */
-    private function assertValidKey($key)
+    private function deleteDeferred($key)
     {
-        if ( ! Item::isValidKey($key)) {
-            throw new InvalidArgumentException('invalid key: ' . var_export($key, true));
+        if (isset($this->deferredStack[$key])) {
+            unset($this->deferredStack[$key]);
         }
     }
 

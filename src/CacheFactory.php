@@ -16,6 +16,7 @@ class CacheFactory
     const REDIS = 3;
     const TWO_LEVEL = 4;
     const FILE = 5;
+    const MEMCACHED = 6;
 
     /**
      * @param null $type
@@ -47,6 +48,12 @@ class CacheFactory
                     throw new CacheException('Redis cache not available: not installed or argument not a Redis instance');
                 }
                 return new RedisCache($arg0);
+
+            case self::MEMCACHED:
+                if (! static::isMemcachedAvailable() || ! $arg0 instanceof \Memcached) {
+                    throw new CacheException('Redis cache not available: not installed or argument not a Redis instance');
+                }
+                return new MemcachedCache($arg0);
 
             case self::FILE:
                 if (! static::isFilesWritable()) {
@@ -113,5 +120,10 @@ class CacheFactory
     private static function isAPCuAvailable()
     {
         return (function_exists('apcu_fetch') || function_exists('apc_fetch'));
+    }
+
+    private function isMemcachedAvailable()
+    {
+        return (class_exists('Memcached'));
     }
 }
