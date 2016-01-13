@@ -177,6 +177,10 @@ class MemoryCache implements CacheItemPoolInterface
      */
     public function save(CacheItemInterface $item)
     {
+        if ( ! $item->isHit()) {
+            return false;
+        }
+
         $this->stack[$item->getKey()] = $item;
 
         return true;

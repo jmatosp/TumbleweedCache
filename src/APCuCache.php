@@ -219,6 +219,10 @@ class APCuCache implements CacheItemPoolInterface
      */
     public function save(CacheItemInterface $item)
     {
+        if (! $item->isHit()) {
+            return false;
+        }
+        
         if ($this->legacy) {
             $store = apc_store($item->getKey(), serialize($item));
         } else {

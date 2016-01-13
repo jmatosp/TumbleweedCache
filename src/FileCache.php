@@ -176,6 +176,10 @@ class FileCache implements CacheItemPoolInterface
      */
     public function save(CacheItemInterface $item)
     {
+        if ( ! $item->isHit()) {
+            return false;
+        }
+
         $bytes = file_put_contents($this->filenameFor($item->getKey()), serialize($item));
 
         return (false !== $bytes);

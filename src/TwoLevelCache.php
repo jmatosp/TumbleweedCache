@@ -180,6 +180,10 @@ class TwoLevelCache implements CacheItemPoolInterface
      */
     public function save(CacheItemInterface $item)
     {
+        if ( ! $item->isHit()) {
+            return false;
+        }
+
         return ($this->local->save($item) && $this->remote->save($item));
     }
 

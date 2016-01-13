@@ -187,6 +187,10 @@ class RedisCache implements CacheItemPoolInterface
      */
     public function save(CacheItemInterface $item)
     {
+        if ( ! $item->isHit()) {
+            return false;
+        }
+
         return $this->redis->set($item->getKey(), serialize($item));
     }
 
