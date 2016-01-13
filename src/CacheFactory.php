@@ -122,7 +122,7 @@ class CacheFactory
         return (function_exists('apcu_fetch') || function_exists('apc_fetch'));
     }
 
-    private function isMemcachedAvailable()
+    private static function isMemcachedAvailable()
     {
         return (class_exists('Memcached'));
     }
