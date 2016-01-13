@@ -195,7 +195,6 @@ class MemcachedCache implements CacheItemPoolInterface
             foreach ($keys as $key) {
                 $this->deleteItem($key);
             }
-            // @codeCoverageIgnoreEnd
         } else {
             // @codeCoverageIgnoreEnd
             $this->cacheClient->deleteMulti($keys);
