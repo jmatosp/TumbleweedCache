@@ -123,7 +123,7 @@ class MemcachedCache implements CacheItemPoolInterface
 
         $item = $this->getItem($key);
 
-        return isset($this->deferredStack[$key]) || $item->isHit();
+        return (isset($this->deferredStack[$key]) && $this->deferredStack[$key]->isHit()) || $item->isHit();
     }
 
     /**
