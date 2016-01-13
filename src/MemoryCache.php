@@ -98,7 +98,12 @@ class MemoryCache implements CacheItemPoolInterface
     {
         $this->assertValidKey($key);
 
-        return isset($this->stack[$key]) || isset($this->deferredStack[$key]);
+        $itemInDeferredNotExpired = isset($this->deferredStack[$key]) && $this->deferredStack[$key]->isHit();
+
+        return (
+            $itemInDeferredNotExpired ||
+            (isset($this->stack[$key]) && $this->stack[$key]->isHit())
+        );
     }
 
     /**

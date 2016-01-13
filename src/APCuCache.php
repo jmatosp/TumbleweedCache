@@ -133,9 +133,7 @@ class APCuCache implements CacheItemPoolInterface
             $exists = apcu_exists($key);
         }
 
-        $itemInDeferredNotExpired = isset($this->deferredStack[$key]) && $this->deferredStack[$key]->isHit();
-
-        return $itemInDeferredNotExpired || $exists;
+        return $this->isItemInDeferred($key) || $exists;
     }
 
     /**
@@ -284,5 +282,15 @@ class APCuCache implements CacheItemPoolInterface
     public function __destruct()
     {
         $this->commit();
+    }
+
+    /**
+     * @param $key
+     * @return bool
+     */
+    private function isItemInDeferred($key)
+    {
+        // is in stack and not expired
+        return isset($this->deferredStack[$key]) && $this->deferredStack[$key]->isHit();
     }
 }
