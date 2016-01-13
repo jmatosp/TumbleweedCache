@@ -60,30 +60,4 @@ class CacheFactoryTest extends PHPUnit_Framework_TestCase
 
         $this->assertTrue($cache->getItem('key')->isHit());
     }
-
-    public function testMemcachedDeleteMultiWorksOnHHVM()
-    {
-        $memcached = new Memcached('hello');
-        $memcached->addServer('localhost', 11211);
-
-        $cache = CacheFactory::make(CacheFactory::MEMCACHED, $memcached);
-
-        // emulate HHVM environment
-        $redefined = false;
-        if ( ! defined('HHVM_VERSION')) {
-            $redefined = true;
-            define('HHVM_VERSION', 'cat');
-        }
-
-        $item = $cache->getITem('key')->set('value');
-        $cache->save($item);
-
-        // should delete multi anyway
-        $cache->deleteItems(['key']);
-        $this->assertFalse($cache->getItem('key')->isHit());
-
-        if ($redefined) {
-            runkit_constant_remove('HHVM_VERSION');
-        }
-    }
 }

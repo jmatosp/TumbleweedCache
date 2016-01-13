@@ -191,9 +191,11 @@ class MemcachedCache implements CacheItemPoolInterface
 
         // HHVM memcached doesn't have this method
         if (defined('HHVM_VERSION')) {
+            // @codeCoverageIgnoreStart
             foreach ($keys as $key) {
                 $this->deleteItem($key);
             }
+            // @codeCoverageIgnoreEnd
         } else {
             $this->cacheClient->deleteMulti($keys);
         }
